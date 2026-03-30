@@ -61,5 +61,4 @@ public class PlayerMover : MonoBehaviour
         return Physics.CheckSphere(transform.position + groundCheckOffset, groundCheckRadius, groundLayer);
     }
     public float GetVerticalVelocity() => velocity.y;   // 현재 수직 속도(y)를 알려줍니다. (내려가는 중인지 확인용)
-
 }
