@@ -6,7 +6,7 @@ public class IdleState : IState
 
     public IdleState(PlayerStateMachine sm) => stateMachine = sm;
 
-    public void Enter() { /* °¡¸¸È÷ ¼­ ÀÖ´Â ¾Ö´Ï¸ÞÀÌ¼Ç Àç»ý */ }
+    public void Enter() { /* ê°€ë§Œížˆ ì„œ ìžˆëŠ” ì• ë‹ˆë©”ì´ì…˜ ìž¬ìƒ */ }
 
     public void Update()
     {
@@ -16,7 +16,7 @@ public class IdleState : IState
             return;
         }
 
-        // ÀÔ·ÂÀÌ µé¾î¿À¸é ÀÌµ¿ »óÅÂ·Î ÀüÈ¯
+        // ìž…ë ¥ì´ ë“¤ì–´ì˜¤ë©´ ì´ë™ ìƒíƒœë¡œ ì „í™˜
         if (stateMachine.InputReader.MoveDirection.sqrMagnitude > 0.01f)
         {
             stateMachine.ChangeState(stateMachine.Move);

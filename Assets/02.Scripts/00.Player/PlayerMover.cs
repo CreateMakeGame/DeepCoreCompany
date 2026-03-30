@@ -1,47 +1,65 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMover : MonoBehaviour
 {
     private CharacterController controller;
-    [Tooltip("Á¡ÇÁ ³ôÀÌ")]
+    [Tooltip("ì í”„ ë†’ì´")]
     [SerializeField] private float moveSpeed = 5f;
-    [Tooltip("Áß·Â")]
+    [Tooltip("ì¤‘ë ¥")]
     [SerializeField] private float gravity = -9.81f;
-    [Tooltip("Á¡ÇÁ ³ôÀÌ")]
+    [Tooltip("ì í”„ ë†’ì´")]
     [SerializeField] private float JumpHeight = 1.5f;
-    private Vector2 velocity;
 
-    public bool IsGrounded() => controller.isGrounded;    // ÇöÀç Ä³¸¯ÅÍ°¡ ¶¥¿¡ ´ê¾Æ ÀÖ´ÂÁö ¿©ºÎ¸¦ ¾Ë·ÁÁİ´Ï´Ù.
-    public float GetVerticalVelocity() => velocity.y;   // ÇöÀç ¼öÁ÷ ¼Óµµ(y)¸¦ ¾Ë·ÁÁİ´Ï´Ù. (³»·Á°¡´Â ÁßÀÎÁö È®ÀÎ¿ë)
+    [Header("Ground Check")]
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float groundCheckRadius = 0.4f;  // ë•… ì²´í¬ë¥¼ ìœ„í•œ ê±°ë¦¬
+    [SerializeField] private Vector3 groundCheckOffset = new Vector3(0, -0.5f, 0); // ë•… ì²´í¬ ìœ„ì¹˜ ì˜¤í”„ì…‹
+    private Vector2 velocity;
+    private Vector3 move;   // ì´ë™ ë°©í–¥ ë²¡í„°
+
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
     }
+    private void Update()
+    {
+        // ë‹¨ìˆœ ì´ë™
+        controller.Move(move * moveSpeed * Time.deltaTime);
+
+        // ì¤‘ë ¥ ì ìš©
+        if (IsGrounded() && velocity.y < 0)
+            velocity.y = -2f; // ë•…ì— ë‹¿ì•˜ì„ ë•Œ ì•½ê°„ì˜ í˜ì„ ì£¼ì–´ ì™„ì „íˆ ë©ˆì¶”ë„ë¡ í•¨
+
+        Gravity(); // ì¤‘ë ¥ ê°€ì†ë„ ì ìš©
+
+        controller.Move(velocity * Time.deltaTime); // ì¤‘ë ¥ì— ë”°ë¥¸ ì´ë™ ì ìš©
+
+        move = Vector3.zero; // ë§¤ í”„ë ˆì„ ì´ë™ ë°©í–¥ ì´ˆê¸°í™” (ì…ë ¥ì— ë”°ë¼ ìƒˆë¡œ ì„¤ì •ë  ì˜ˆì •)
+    }
 
     public void Move(Vector2 intput)
     {
-        Vector3 move = new Vector3(intput.x, 0, intput.y);
-
-        // ´Ü¼ø ÀÌµ¿
-        controller.Move(move *  moveSpeed * Time.deltaTime);
-
-        // Áß·Â Àû¿ë
-        if (controller.isGrounded && velocity.y < 0)
-            velocity.y = -2f; // ¶¥¿¡ ´ê¾ÒÀ» ¶§ ¾à°£ÀÇ ÈûÀ» ÁÖ¾î ¿ÏÀüÈ÷ ¸ØÃßµµ·Ï ÇÔ
-        Gravity(); // Áß·Â °¡¼Óµµ Àû¿ë
-        controller.Move(velocity * Time.deltaTime); // Áß·Â¿¡ µû¸¥ ÀÌµ¿ Àû¿ë
+        move = new Vector3(intput.x, 0, intput.y);
     }
 
     public void Gravity()
     {
-        velocity.y += gravity * Time.deltaTime; // Áß·Â °¡¼Óµµ Àû¿ë
+        velocity.y += gravity * Time.deltaTime; // ì¤‘ë ¥ ê°€ì†ë„ ì ìš©
     }
 
     public void Jump()
     {
-        // ¹°¸® °ø½Ä ±â¹İ Á¡ÇÁ °è»ê: v = sqrt(h * -2 * g)
-        velocity.y = Mathf.Sqrt(JumpHeight * -2f * gravity);    // Á¡ÇÁ °ø½Ä: v = sqrt(h * -2 * g)
+        // ë¬¼ë¦¬ ê³µì‹ ê¸°ë°˜ ì í”„ ê³„ì‚°: v = sqrt(h * -2 * g)
+        velocity.y = Mathf.Sqrt(JumpHeight * -2f * gravity);    // ì í”„ ê³µì‹: v = sqrt(h * -2 * g)
     }
+
+    public bool IsGrounded()
+    {
+        return Physics.CheckSphere(transform.position + groundCheckOffset, groundCheckRadius, groundLayer);
+    }
+    public float GetVerticalVelocity() => velocity.y;   // í˜„ì¬ ìˆ˜ì§ ì†ë„(y)ë¥¼ ì•Œë ¤ì¤ë‹ˆë‹¤. (ë‚´ë ¤ê°€ëŠ” ì¤‘ì¸ì§€ í™•ì¸ìš©)
+
 }
