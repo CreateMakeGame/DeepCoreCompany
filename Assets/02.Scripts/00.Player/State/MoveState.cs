@@ -14,6 +14,12 @@ public class MoveState : IState
     {
         stateMachine.Mover.Move(stateMachine.InputReader.MoveDirection);
 
+        if (stateMachine.InputReader.IsJumpPressed && stateMachine.Mover.IsGrounded())
+        {
+            stateMachine.ChangeState(stateMachine.Jump);
+            return;
+        }
+
         if (stateMachine.InputReader.MoveDirection.sqrMagnitude <= 0.01f)
         {
             stateMachine.ChangeState(stateMachine.Idle);
@@ -21,5 +27,4 @@ public class MoveState : IState
     }
 
     public void Exit() { }
-    
 }

@@ -10,6 +10,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     public IdleState Idle { get; private set; }
     public MoveState Move { get; private set; }
+    public JumpState Jump { get; private set; }
     public void Awake()
     {
         InputReader = GetComponent<PlayerController>();
@@ -17,6 +18,7 @@ public class PlayerStateMachine : MonoBehaviour
 
         Idle = new IdleState(this);
         Move = new MoveState(this);
+        Jump = new JumpState(this);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

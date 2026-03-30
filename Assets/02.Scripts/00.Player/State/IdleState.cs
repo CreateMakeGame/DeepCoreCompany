@@ -10,6 +10,12 @@ public class IdleState : IState
 
     public void Update()
     {
+        if (stateMachine.InputReader.IsJumpPressed && stateMachine.Mover.IsGrounded())
+        {
+            stateMachine.ChangeState(stateMachine.Jump);
+            return;
+        }
+
         // 입력이 들어오면 이동 상태로 전환
         if (stateMachine.InputReader.MoveDirection.sqrMagnitude > 0.01f)
         {
