@@ -13,14 +13,14 @@ public class JumpState : IState
 
     public void Update()
     {
-        stateMachine.Mover.Move(stateMachine.InputReader.MoveDirection);
+        stateMachine.Mover.Move(stateMachine.playerController.MoveDirection);
 
-        // yÃà ¼Óµµ°¡ 0º¸´Ù ÀÛÀ» ¶§(³»·Á¿À´Â Áß) ¶¥¿¡ ´êÀ¸¸é »óÅÂ ÀüÈ¯
+        // yì¶• ì†ë„ê°€ 0ë³´ë‹¤ ì‘ì„ ë•Œ(ë‚´ë ¤ì˜¤ëŠ” ì¤‘) ë•…ì— ë‹¿ìœ¼ë©´ ìƒíƒœ ì „í™˜
         if (stateMachine.Mover.IsGrounded() && stateMachine.Mover.GetVerticalVelocity() < 0)
         {
-            // sqrMagnitude·Î ºñ±³ÇÏ¿© ÀÔ·ÂÀÌ ÀÖÀ¸¸é Move »óÅÂ, ¾øÀ¸¸é Idle »óÅÂ·Î ÀüÈ¯
-            if (stateMachine.InputReader.MoveDirection.sqrMagnitude > 0.01f)
-                stateMachine.ChangeState(stateMachine.Move);
+            // sqrMagnitudeë¡œ ë¹„êµí•˜ì—¬ ì…ë ¥ì´ ìˆìœ¼ë©´ Move ìƒíƒœ, ì—†ìœ¼ë©´ Idle ìƒíƒœë¡œ ì „í™˜
+            if (stateMachine.playerController.MoveDirection.sqrMagnitude > 0.01f)
+                stateMachine.ChangeState(stateMachine.Walk);
             else
                 stateMachine.ChangeState(stateMachine.Idle);
         }

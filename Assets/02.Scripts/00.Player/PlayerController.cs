@@ -9,35 +9,42 @@ public class PlayerController : MonoBehaviour
 
     #region Properties
     public Vector2 MoveDirection => moveInput;
+    public bool IsRunPressed { get; private set; }
     public bool IsJumpPressed { get; private set; }
     #endregion
 
     private void Awake()
     {
-        //  »ý¼ºµÈ C# Å¬·¡½ºÀÇ ÀÎ½ºÅÏ½º¸¦ ¸¸µì´Ï´Ù.
+        //  ìƒì„±ëœ C# í´ëž˜ìŠ¤ì˜ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ë§Œë“­ë‹ˆë‹¤.
         controls = new Player_Actions();
 
         OnMove();
         OnJump();
     }
 
-    private void OnEnable() => controls.Player.Enable(); // È°¼ºÈ­
-    private void OnDisable() => controls.Player.Disable(); // ºñÈ°¼ºÈ­
+    private void OnEnable() => controls.Player.Enable(); // í™œì„±í™”
+    private void OnDisable() => controls.Player.Disable(); // ë¹„í™œì„±í™”
 
     private void Update() { }
 
-    #region ÀÌº¥Æ® ±¸µ¶
+    #region ì´ë²¤íŠ¸ êµ¬ë…
     private void OnMove()
     {
-        //  WASD (Vector2) ÀÔ·ÂÀÌ ¹ß»ýÇÒ ¶§¸¶´Ù º¯¼ö¿¡ ÀúÀåÇÕ´Ï´Ù.
+        //  WASD (Vector2) ìž…ë ¥ì´ ë°œìƒí•  ë•Œë§ˆë‹¤ ë³€ìˆ˜ì— ì €ìž¥í•©ë‹ˆë‹¤.
         controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         controls.Player.Move.canceled += ctx => moveInput = Vector2.zero;
     }
     private void OnJump()
     {
-        // Á¡ÇÁ ¹öÆ°ÀÌ ´­·ÈÀ» ¶§ ·ÎÁ÷À» ½ÇÇàÇÕ´Ï´Ù.
+        // ì í”„ ë²„íŠ¼ì´ ëˆŒë ¸ì„ ë•Œ ë¡œì§ì„ ì‹¤í–‰í•©ë‹ˆë‹¤.
         controls.Player.Jump.started += ctx => IsJumpPressed = true;
         controls.Player.Jump.canceled += ctx => IsJumpPressed = false;
+    }
+    private void OnRun()
+    {
+        // ë‹¬ë¦¬ê¸° ë²„íŠ¼ì´ ëˆŒë ¸ì„ ë•Œ ë¡œì§ì„ ì‹¤í–‰í•©ë‹ˆë‹¤.
+        controls.Player.Sprint.started += ctx => IsRunPressed = true;
+        controls.Player.Sprint.canceled += ctx => IsRunPressed = false;
     }
     #endregion
 }

@@ -1,24 +1,36 @@
-using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
 public class PlayerStateMachine : MonoBehaviour
 {
-    public PlayerController InputReader { get; private set; }
+    [Header("References")]
+    [SerializeField] private PlayerData data; // SO 파일 할당
+    public PlayerData Data => data;
+
+    public PlayerAnimationData AnimationData;
+    public PlayerController playerController { get; private set; }
     public PlayerMover Mover { get; private set; }
+    public Animator Animator { get; private set; }
 
     private IState currentState;
 
+
     public IdleState Idle { get; private set; }
-    public MoveState Move { get; private set; }
+    public WalkState Walk { get; private set; }
+    public RunState Run { get; private set; }
     public JumpState Jump { get; private set; }
+
     public void Awake()
     {
-        InputReader = GetComponent<PlayerController>();
+        playerController = GetComponent<PlayerController>();
         Mover = GetComponent<PlayerMover>();
+        Animator = GetComponentInChildren<Animator>();
+        AnimationData.Initialize();
 
         Idle = new IdleState(this);
-        Move = new MoveState(this);
+        Walk = new WalkState(this);
+        Run = new RunState(this);
         Jump = new JumpState(this);
+
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
