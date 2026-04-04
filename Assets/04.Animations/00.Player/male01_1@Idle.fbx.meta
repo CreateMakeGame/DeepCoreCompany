@@ -312,6 +312,26 @@ ModelImporter:
       position: {x: -0, y: 0.0673, z: 1.3965}
       rotation: {x: 0.78348905, y: 0, z: 0, w: 0.6214056}
       scale: {x: 1, y: 1, z: 1}
+    - name: pelvis.L
+      parentName: spine
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.22947401, y: 0.70720893, z: 0.49135092, w: 0.45362037}
+      scale: {x: 1, y: 1, z: 1}
+    - name: pelvis.L_end
+      parentName: pelvis.L
+      position: {x: -0, y: 0.227, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: pelvis.R
+      parentName: spine
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0.2294744, y: 0.7072085, z: 0.49135154, w: -0.45362017}
+      scale: {x: 1, y: 1, z: 1}
+    - name: pelvis.R_end
+      parentName: pelvis.R
+      position: {x: -0, y: 0.227, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
     - name: spine.001
       parentName: spine
       position: {x: -0, y: 0.1945, z: 0}
@@ -327,35 +347,15 @@ ModelImporter:
       position: {x: -0, y: 0.1866, z: 0}
       rotation: {x: 0.0075907023, y: -0.0026172856, z: -0.01369095, w: 0.99987406}
       scale: {x: 1, y: 1, z: 1}
-    - name: spine.004
-      parentName: spine.003
-      position: {x: -0, y: 0.2666, z: 0.0002}
-      rotation: {x: 0.24096645, y: -0.0018257461, z: 0.00403187, w: 0.97052336}
-      scale: {x: 1, y: 1, z: 1}
-    - name: spine.005
-      parentName: spine.004
-      position: {x: -0, y: 0.0619, z: 0}
-      rotation: {x: 0.099455655, y: -0.0007540027, z: -0.0019610154, w: 0.99503976}
-      scale: {x: 1, y: 1, z: 1}
-    - name: spine.006
-      parentName: spine.005
-      position: {x: -0, y: 0.0946, z: 0}
-      rotation: {x: -0.2374827, y: -0.00037167245, z: -0.0020678346, w: 0.97138953}
-      scale: {x: 1, y: 1, z: 1}
-    - name: spine.006_end
-      parentName: spine.006
-      position: {x: -0, y: 0.256, z: 0}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
     - name: shoulder.L
       parentName: spine.003
       position: {x: -0.0235, y: 0.2025, z: 0.1108}
-      rotation: {x: -0.56892043, y: 0.3884479, z: 0.46074325, w: 0.55960107}
+      rotation: {x: -0.5689205, y: 0.38844794, z: 0.46074328, w: 0.5596011}
       scale: {x: 1, y: 1, z: 1}
     - name: upper_arm.L
       parentName: shoulder.L
       position: {x: -0.0115, y: 0.2411, z: -0.025}
-      rotation: {x: -0.14391597, y: 0.8908699, z: -0.058156647, w: -0.42691544}
+      rotation: {x: -0.143916, y: 0.8908699, z: -0.058156654, w: -0.42691544}
       scale: {x: 1, y: 1, z: 1}
     - name: forearm.L
       parentName: upper_arm.L
@@ -397,24 +397,24 @@ ModelImporter:
       position: {x: -0, y: 0.2388, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: pelvis.L
-      parentName: spine
-      position: {x: -0, y: 0, z: 0}
-      rotation: {x: -0.22947401, y: 0.70720893, z: 0.49135092, w: 0.45362037}
+    - name: spine.004
+      parentName: spine.003
+      position: {x: -0, y: 0.2666, z: 0.0002}
+      rotation: {x: 0.24096645, y: -0.0018257461, z: 0.00403187, w: 0.97052336}
       scale: {x: 1, y: 1, z: 1}
-    - name: pelvis.L_end
-      parentName: pelvis.L
-      position: {x: -0, y: 0.227, z: 0}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
+    - name: spine.005
+      parentName: spine.004
+      position: {x: -0, y: 0.0619, z: 0}
+      rotation: {x: 0.099455655, y: -0.0007540027, z: -0.0019610154, w: 0.99503976}
       scale: {x: 1, y: 1, z: 1}
-    - name: pelvis.R
-      parentName: spine
-      position: {x: -0, y: 0, z: 0}
-      rotation: {x: 0.2294744, y: 0.7072085, z: 0.49135154, w: -0.45362017}
+    - name: spine.006
+      parentName: spine.005
+      position: {x: -0, y: 0.0946, z: 0}
+      rotation: {x: -0.2374827, y: -0.00037167245, z: -0.0020678346, w: 0.97138953}
       scale: {x: 1, y: 1, z: 1}
-    - name: pelvis.R_end
-      parentName: pelvis.R
-      position: {x: -0, y: 0.227, z: 0}
+    - name: spine.006_end
+      parentName: spine.006
+      position: {x: -0, y: 0.256, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: thigh.L
@@ -432,16 +432,6 @@ ModelImporter:
       position: {x: -0, y: 0.6068, z: 0}
       rotation: {x: -0.31346115, y: -0.29578528, z: 0.056160748, w: 0.9006105}
       scale: {x: 1, y: 1, z: 1}
-    - name: toe.L
-      parentName: foot.L
-      position: {x: -0, y: 0.0803, z: 0}
-      rotation: {x: 0.13005681, y: 0.8647707, z: -0.47891268, w: -0.07680815}
-      scale: {x: 1, y: 1, z: 1}
-    - name: toe.L_end
-      parentName: toe.L
-      position: {x: -0, y: 0.2795, z: 0}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
     - name: heel.02.L
       parentName: foot.L
       position: {x: 0.0605, y: 0.1073, z: 0.1073}
@@ -450,6 +440,16 @@ ModelImporter:
     - name: heel.02.L_end
       parentName: heel.02.L
       position: {x: -0, y: 0.1028, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: toe.L
+      parentName: foot.L
+      position: {x: -0, y: 0.0803, z: 0}
+      rotation: {x: 0.13005681, y: 0.8647707, z: -0.47891268, w: -0.07680815}
+      scale: {x: 1, y: 1, z: 1}
+    - name: toe.L_end
+      parentName: toe.L
+      position: {x: -0, y: 0.2795, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: thigh.R
@@ -467,16 +467,6 @@ ModelImporter:
       position: {x: -0, y: 0.6068, z: 0}
       rotation: {x: -0.31553245, y: 0.30436155, z: -0.092809424, w: 0.8939741}
       scale: {x: 1, y: 1, z: 1}
-    - name: toe.R
-      parentName: foot.R
-      position: {x: -0, y: 0.0803, z: 0}
-      rotation: {x: -0.1284514, y: 0.8547494, z: -0.49657753, w: 0.07946383}
-      scale: {x: 1, y: 1, z: 1}
-    - name: toe.R_end
-      parentName: toe.R
-      position: {x: -0, y: 0.2795, z: 0}
-      rotation: {x: 0, y: -0, z: -0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
     - name: heel.02.R
       parentName: foot.R
       position: {x: -0.0605, y: 0.1073, z: 0.1073}
@@ -485,6 +475,16 @@ ModelImporter:
     - name: heel.02.R_end
       parentName: heel.02.R
       position: {x: -0, y: 0.1028, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: toe.R
+      parentName: foot.R
+      position: {x: -0, y: 0.0803, z: 0}
+      rotation: {x: -0.1284514, y: 0.8547494, z: -0.49657753, w: 0.07946383}
+      scale: {x: 1, y: 1, z: 1}
+    - name: toe.R_end
+      parentName: toe.R
+      position: {x: -0, y: 0.2795, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
