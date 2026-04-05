@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
 
         OnMove();
         OnJump();
+        OnRun();
     }
 
     private void OnEnable() => controls.Player.Enable(); // 활성화
@@ -43,8 +44,8 @@ public class PlayerController : MonoBehaviour
     private void OnRun()
     {
         // 달리기 버튼이 눌렸을 때 로직을 실행합니다.
-        controls.Player.Sprint.started += ctx => IsRunPressed = true;
-        controls.Player.Sprint.canceled += ctx => IsRunPressed = false;
+        controls.Player.Run.started += ctx => IsRunPressed = true;
+        controls.Player.Run.canceled += ctx => IsRunPressed = false;
     }
     #endregion
 }

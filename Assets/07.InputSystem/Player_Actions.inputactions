@@ -43,7 +43,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Sprint",
+                    "name": "Run",
                     "type": "Button",
                     "id": "9715a3db-9cf0-466c-a2a9-38f06d8694d9",
                     "expectedControlType": "",
@@ -144,11 +144,11 @@
                 {
                     "name": "",
                     "id": "d28d1899-e081-4e49-a8e9-b2c10c606b63",
-                    "path": "<Keyboard>/rightShift",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": ";PC",
-                    "action": "Sprint",
+                    "action": "Run",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

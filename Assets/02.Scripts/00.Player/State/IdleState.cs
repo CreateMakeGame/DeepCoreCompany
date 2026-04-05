@@ -21,7 +21,13 @@ public class IdleState : IState
         // 입력이 들어오면 이동 상태로 전환
         if (stateMachine.playerController.MoveDirection.sqrMagnitude > 0.01f)
         {
-            stateMachine.ChangeState(stateMachine.Walk);
+            if(stateMachine.playerController.IsRunPressed)
+            {
+                stateMachine.ChangeState(stateMachine.Run);
+                return;
+            }
+            else 
+                stateMachine.ChangeState(stateMachine.Walk);
         }
     }
     public void Exit() { }

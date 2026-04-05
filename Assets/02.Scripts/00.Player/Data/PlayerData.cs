@@ -3,8 +3,8 @@ using UnityEngine;
 public class PlayerData : ScriptableObject
 {
     [Header("Move Speeds")]
-    public float baseSpeed = 5f;
-    public float runSpeed = 8f;
+    public float baseSpeed = 5f;        // 기본 걷기 속도
+    public float runSpeed = 8f;         // 달리기 속도
 
     [Header("Jump Physics")]
     public float jumpHeight = 1.5f;

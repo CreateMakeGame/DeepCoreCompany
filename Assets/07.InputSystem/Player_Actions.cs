@@ -129,7 +129,7 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Sprint"",
+                    ""name"": ""Run"",
                     ""type"": ""Button"",
                     ""id"": ""9715a3db-9cf0-466c-a2a9-38f06d8694d9"",
                     ""expectedControlType"": """",
@@ -230,11 +230,11 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""d28d1899-e081-4e49-a8e9-b2c10c606b63"",
-                    ""path"": ""<Keyboard>/rightShift"",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";PC"",
-                    ""action"": ""Sprint"",
+                    ""action"": ""Run"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -266,7 +266,7 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Interaction = m_Player.FindAction("Interaction", throwIfNotFound: true);
         m_Player_Dig = m_Player.FindAction("Dig", throwIfNotFound: true);
-        m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
+        m_Player_Run = m_Player.FindAction("Run", throwIfNotFound: true);
     }
 
     ~@Player_Actions()
@@ -351,7 +351,7 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Interaction;
     private readonly InputAction m_Player_Dig;
-    private readonly InputAction m_Player_Sprint;
+    private readonly InputAction m_Player_Run;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -380,9 +380,9 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Dig => m_Wrapper.m_Player_Dig;
         /// <summary>
-        /// Provides access to the underlying input action "Player/Sprint".
+        /// Provides access to the underlying input action "Player/Run".
         /// </summary>
-        public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
+        public InputAction @Run => m_Wrapper.m_Player_Run;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -421,9 +421,9 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
             @Dig.started += instance.OnDig;
             @Dig.performed += instance.OnDig;
             @Dig.canceled += instance.OnDig;
-            @Sprint.started += instance.OnSprint;
-            @Sprint.performed += instance.OnSprint;
-            @Sprint.canceled += instance.OnSprint;
+            @Run.started += instance.OnRun;
+            @Run.performed += instance.OnRun;
+            @Run.canceled += instance.OnRun;
         }
 
         /// <summary>
@@ -447,9 +447,9 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
             @Dig.started -= instance.OnDig;
             @Dig.performed -= instance.OnDig;
             @Dig.canceled -= instance.OnDig;
-            @Sprint.started -= instance.OnSprint;
-            @Sprint.performed -= instance.OnSprint;
-            @Sprint.canceled -= instance.OnSprint;
+            @Run.started -= instance.OnRun;
+            @Run.performed -= instance.OnRun;
+            @Run.canceled -= instance.OnRun;
         }
 
         /// <summary>
@@ -532,11 +532,11 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnDig(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Sprint" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Run" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSprint(InputAction.CallbackContext context);
+        void OnRun(InputAction.CallbackContext context);
     }
 }
