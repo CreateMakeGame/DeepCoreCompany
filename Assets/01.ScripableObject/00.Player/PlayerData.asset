@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c1f79ab7130ee248a3ad0508ef52b22, type: 3}
   m_Name: PlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
-  baseSpeed: 5
-  runSpeed: 8
+  baseSpeed: 3
+  runSpeed: 5
   jumpHeight: 1.5
   gravity: -9.81
   groundCheckRadius: 0.4
