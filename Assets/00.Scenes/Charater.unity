@@ -207,12 +207,12 @@ Transform:
   m_GameObject: {fileID: 358916282}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.062177993, y: 1.5530024, z: 0.35819894}
+  m_LocalPosition: {x: 0, y: 1.52, z: 0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 391867275}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -0.03, y: 0, z: 0}
 --- !u!114 &358916286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -356,8 +356,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4653873035640940263}
   - {fileID: 1549234757}
+  - {fileID: 4653873035640940263}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &526537415
@@ -373,7 +373,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: f119a47a428e4f842aaa018bd7259d71, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -394,6 +394,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de488343e37dfa4db319a6dc828a65f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  cameraTransform: {fileID: 358916285}
 --- !u!114 &526537417
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -695,9 +696,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1354834004}
   - component: {fileID: 1354834006}
-  - component: {fileID: 1354834008}
+  - component: {fileID: 1354834011}
   - component: {fileID: 1354834010}
   - component: {fileID: 1354834009}
+  - component: {fileID: 1354834012}
   m_Layer: 0
   m_Name: 1st Person Vcam
   m_TagString: Untagged
@@ -713,13 +715,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1354834003}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.062177993, y: 1.5530024, z: 0.35819894}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.52, z: 0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 391867275}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -0.03}
 --- !u!114 &1354834006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -763,19 +765,6 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
---- !u!114 &1354834008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1354834003}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36d1163fa822e8b418a0a603ec078d5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLockToTarget
-  Damping: 0
 --- !u!114 &1354834009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -798,7 +787,7 @@ MonoBehaviour:
       Enabled: 1
       Input:
         InputAction: {fileID: -187159948056505122, guid: a0174ddb09bd27c4a98fc0475dd357c8, type: 3}
-        Gain: 2
+        Gain: 5
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
@@ -809,7 +798,7 @@ MonoBehaviour:
       Enabled: 1
       Input:
         InputAction: {fileID: -187159948056505122, guid: a0174ddb09bd27c4a98fc0475dd357c8, type: 3}
-        Gain: -1
+        Gain: -5
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
@@ -829,7 +818,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62d54399b04b4fa48a73e121d4937dd4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachinePanTilt
-  ReferenceFrame: 0
+  ReferenceFrame: 1
   RecenterTarget: 0
   PanAxis:
     Value: 0
@@ -844,13 +833,41 @@ MonoBehaviour:
   TiltAxis:
     Value: 0
     Center: 0
-    Range: {x: -70, y: 70}
+    Range: {x: -80, y: 80}
     Wrap: 0
     Recentering:
       Enabled: 0
       Wait: 1
       Time: 2
     Restrictions: 0
+--- !u!114 &1354834011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354834003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36d1163fa822e8b418a0a603ec078d5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLockToTarget
+  Damping: 0
+--- !u!114 &1354834012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354834003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b10c58c3d55b8ef40a1ab27c2cb134ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraManager
+  axisController: {fileID: 1354834009}
+  horizontalSensitivity: 5
+  verticalSensitivity: 5
 --- !u!1 &1549234756
 GameObject:
   m_ObjectHideFlags: 0
@@ -876,7 +893,7 @@ Transform:
   m_GameObject: {fileID: 1549234756}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.52, z: 0.327}
+  m_LocalPosition: {x: 0, y: 1.52, z: 0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -35,7 +35,8 @@ public class PlayerMover : MonoBehaviour
 
     public void Move(Vector2 intput)
     {
-        move = new Vector3(intput.x, 0, intput.y);
+        //move = new Vector3(intput.x, 0, intput.y);
+        move = (transform.forward * intput.y) + (transform.right * intput.x); // 카메라 방향 기준 이동 벡터 계산
     }
     public void SetMoveSpeed(float speed)
     {

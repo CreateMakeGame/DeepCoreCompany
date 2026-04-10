@@ -7,6 +7,9 @@ public class PlayerController : MonoBehaviour
     private Player_Actions controls;
     private Vector2 moveInput;
 
+    [Header("References")]
+    [SerializeField] private Transform cameraTransform; // Main Camera 혹은 Vcam의 Transform
+
     #region Properties
     public Vector2 MoveDirection => moveInput;
     public bool IsRunPressed { get; private set; }
@@ -21,12 +24,33 @@ public class PlayerController : MonoBehaviour
         OnMove();
         OnJump();
         OnRun();
+
+        SetCursorState(true);
     }
 
     private void OnEnable() => controls.Player.Enable(); // 활성화
     private void OnDisable() => controls.Player.Disable(); // 비활성화
 
-    private void Update() { }
+    private void LateUpdate() 
+    {
+        AlignPlayerWithCamera();
+    }
+
+    private void AlignPlayerWithCamera()
+    {
+        if (cameraTransform == null) return;
+
+        // 카메라의 전방(Forward) 방향에서 수평 평면(X, Z) 벡터만 추출합니다.
+        Vector3 cameraForward = cameraTransform.forward;
+        cameraForward.y = 0; // 수직 방향은 무시
+
+        if (cameraForward.sqrMagnitude > 0.001f)
+        {
+            // 카메라가 바라보는 방향을 향해 몸통의 회전값을 설정
+            Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+            transform.rotation = targetRotation;
+        }
+    }
 
     #region 이벤트 구독
     private void OnMove()
@@ -48,4 +72,19 @@ public class PlayerController : MonoBehaviour
         controls.Player.Run.canceled += ctx => IsRunPressed = false;
     }
     #endregion
+
+    private void SetCursorState(bool isLocked)
+    {
+        if (isLocked)
+        {
+            Cursor.lockState = CursorLockMode.Locked; // 커서를 화면 중앙에 고정
+            Cursor.visible = false; // 커서 숨김
+        }
+        else
+        {
+            // 커서 고정을 해제하고 다시 보이게 합니다.
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
 }
