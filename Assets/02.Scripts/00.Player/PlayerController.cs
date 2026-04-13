@@ -24,7 +24,6 @@ public class PlayerController : MonoBehaviour
         OnJump();
         OnRun();
 
-        SetCursorState(true);
     }
 
     private void OnEnable() => controls.Player.Enable(); // 활성화
@@ -71,19 +70,4 @@ public class PlayerController : MonoBehaviour
         controls.Player.Run.canceled += ctx => IsRunPressed = false;
     }
     #endregion
-
-    private void SetCursorState(bool isLocked)
-    {
-        if (isLocked)
-        {
-            Cursor.lockState = CursorLockMode.Locked; // 커서를 화면 중앙에 고정
-            Cursor.visible = false; // 커서 숨김
-        }
-        else
-        {
-            // 커서 고정을 해제하고 다시 보이게 합니다.
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-    }
 }
