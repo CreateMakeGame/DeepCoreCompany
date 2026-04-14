@@ -11,7 +11,7 @@ public class PlayerData : ScriptableObject
     public float gravity = -9.81f;
 
     [Header("Ground Check")]
-    public float groundCheckRadius = 0.4f;
-    public Vector3 groundCheckOffset = new Vector3(0, -0.5f, 0);
+    public float groundCheckRadius = 0.2f;
+    public Vector3 groundCheckOffset = new Vector3(0, -0.1f, 0);
     public LayerMask groundLayer;
 }

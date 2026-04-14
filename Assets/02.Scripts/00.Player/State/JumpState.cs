@@ -9,6 +9,7 @@ public class JumpState : IState
     public void Enter()
     {
         stateMachine.Mover.Jump();
+        stateMachine.Animator.SetTrigger(stateMachine.AnimationData.JumpParameterHash);
     }
 
     public void Update()
@@ -20,9 +21,16 @@ public class JumpState : IState
         {
             // sqrMagnitude로 비교하여 입력이 있으면 Move 상태, 없으면 Idle 상태로 전환
             if (stateMachine.playerController.MoveDirection.sqrMagnitude > 0.01f)
-                stateMachine.ChangeState(stateMachine.Walk);
+            {
+                if(stateMachine.playerController.IsRunPressed)
+                    stateMachine.ChangeState(stateMachine.Run);
+                else
+                    stateMachine.ChangeState(stateMachine.Walk);
+            }
             else
+            {
                 stateMachine.ChangeState(stateMachine.Idle);
+            }   
         }
     }
 

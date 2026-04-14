@@ -61,4 +61,19 @@ public class PlayerMover : MonoBehaviour
             stateMachine.Data.groundLayer);
     }
     public float GetVerticalVelocity() => velocity.y;   // 현재 수직 속도(y)를 알려줍니다. (내려가는 중인지 확인용)
+
+    private void OnDrawGizmosSelected()
+    {
+        // stateMachine이나 Data가 없을 때 에러가 나지 않도록 방어 코드 추가
+        if (stateMachine == null || stateMachine.Data == null) return;
+
+        // 기즈모의 색상 설정 (원하는 색으로 변경 가능)
+        Gizmos.color = Color.red;
+
+        // IsGrounded()에서 사용하는 계산식과 동일하게 위치 설정
+        Vector3 center = transform.position + stateMachine.Data.groundCheckOffset;
+
+        // 와이어 프레임 구체로 그리기
+        Gizmos.DrawWireSphere(center, stateMachine.Data.groundCheckRadius);
+    }
 }

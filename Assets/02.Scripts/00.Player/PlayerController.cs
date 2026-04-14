@@ -70,4 +70,5 @@ public class PlayerController : MonoBehaviour
         controls.Player.Run.canceled += ctx => IsRunPressed = false;
     }
     #endregion
+
 }
