@@ -4,6 +4,10 @@ public class PlayerStateMachine : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerData data; // SO 파일 할당
+
+    [Header("Action Settings")]
+    [SerializeField] private float digcooldown = 1f; // 굴착 쿨다운 시간
+    private float lastDigTime = -1; // 마지막 굴착 시간
     public PlayerData Data => data;
 
     public PlayerAnimationData AnimationData;
@@ -30,7 +34,6 @@ public class PlayerStateMachine : MonoBehaviour
         Walk = new WalkState(this);
         Run = new RunState(this);
         Jump = new JumpState(this);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -42,12 +45,23 @@ public class PlayerStateMachine : MonoBehaviour
     void Update()
     {
         currentState?.Update();
+
+        Dig();
     }
 
+    private void Dig()
+    {
+        if(playerController.IsDigPressed && Time.time >= lastDigTime + digcooldown)
+        {
+            Animator.SetTrigger(AnimationData.DigParameterHash);
+            lastDigTime = Time.time;
+        }
+    }
     public void ChangeState(IState newState)
     {
         currentState?.Exit();
         currentState = newState;
         currentState.Enter();
     }
+
 }

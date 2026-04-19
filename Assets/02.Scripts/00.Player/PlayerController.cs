@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 
@@ -13,6 +14,7 @@ public class PlayerController : MonoBehaviour
     public Vector2 MoveDirection => moveInput;
     public bool IsRunPressed { get; private set; }
     public bool IsJumpPressed { get; private set; }
+    public bool IsDigPressed { get; private set; }
     #endregion
 
     private void Awake()
@@ -23,8 +25,9 @@ public class PlayerController : MonoBehaviour
         OnMove();
         OnJump();
         OnRun();
-
+        OnDig();
     }
+   
 
     private void OnEnable() => controls.Player.Enable(); // 활성화
     private void OnDisable() => controls.Player.Disable(); // 비활성화
@@ -68,6 +71,13 @@ public class PlayerController : MonoBehaviour
         // 달리기 버튼이 눌렸을 때 로직을 실행합니다.
         controls.Player.Run.started += ctx => IsRunPressed = true;
         controls.Player.Run.canceled += ctx => IsRunPressed = false;
+    }
+
+    private void  OnDig()
+    {
+        // 파기 버튼이 눌렸을 때 로직을 실행합니다.
+        controls.Player.Dig.started += ctx =>  IsDigPressed = true;
+        controls.Player.Dig.canceled += ctx =>  IsDigPressed = false;
     }
     #endregion
 

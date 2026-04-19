@@ -9,7 +9,6 @@ public class WalkState : IState
     {
         stateMachine.Mover.SetMoveSpeed(stateMachine.Data.baseSpeed);
         stateMachine.Animator.SetFloat(stateMachine.AnimationData.SpeedParameterHash, 0.5f);
-
     }
     public void Update()
     {
