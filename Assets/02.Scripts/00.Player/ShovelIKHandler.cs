@@ -17,24 +17,17 @@ public class ShovelIKHandler : MonoBehaviour
 
     private void OnAnimatorIK(int layerIndex)
     {
-        if (animator)
-        {
-            // 왼손 IK 설정
-            if (leftHandTarget != null)
-            {
-                animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, ikWeight);
-                animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, ikWeight);
-                animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHandTarget.position);
-                animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandTarget.rotation);
-            }
-            // 오른손 IK 설정
-            if (rightHandTarget != null)
-            {
-                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, ikWeight);
-                animator.SetIKRotationWeight(AvatarIKGoal.RightHand, ikWeight);
-                animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandTarget.position);
-                animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandTarget.rotation);
-            }
-        }
+        if (animator == null) return;
+        ApplyHandIK(AvatarIKGoal.LeftHand, leftHandTarget);
+        ApplyHandIK(AvatarIKGoal.RightHand, rightHandTarget);
+    }
+
+    void ApplyHandIK(AvatarIKGoal goal, Transform target)
+    {
+        if (target == null) return;
+        animator.SetIKPositionWeight(goal, ikWeight);
+        animator.SetIKRotationWeight(goal, ikWeight);
+        animator.SetIKPosition(goal, target.position);
+        animator.SetIKRotation(goal, target.rotation);
     }
 }
