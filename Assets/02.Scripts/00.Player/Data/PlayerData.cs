@@ -14,4 +14,9 @@ public class PlayerData : ScriptableObject
     public float groundCheckRadius = 0.2f;
     public Vector3 groundCheckOffset = new Vector3(0, -0.1f, 0);
     public LayerMask groundLayer;
+
+    [Header("Digging")]
+    public float baseDigDuration = 1.0f;    // 굴착 애니메이션의 기본 지속 시간
+    public float digSpeedMultiplier = 1.0f; // 굴착 애니메이션 속도 조절을 위한 배수
+    public float digCooldown = 1.0f;        // 굴착 사이의 대기 시간
 }

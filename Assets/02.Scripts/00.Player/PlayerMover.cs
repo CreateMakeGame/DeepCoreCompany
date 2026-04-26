@@ -33,10 +33,10 @@ public class PlayerMover : MonoBehaviour
         move = Vector3.zero; // 매 프레임 이동 방향 초기화 (입력에 따라 새로 설정될 예정)
     }
 
-    public void Move(Vector2 intput)
+    public void Move(Vector2 input)
     {
         //move = new Vector3(intput.x, 0, intput.y);
-        move = (transform.forward * intput.y) + (transform.right * intput.x); // 카메라 방향 기준 이동 벡터 계산
+        move = (transform.forward * input.y) + (transform.right * input.x); // 카메라 방향 기준 이동 벡터 계산
     }
     public void SetMoveSpeed(float speed)
     {
