@@ -16,8 +16,11 @@ MonoBehaviour:
   runSpeed: 5
   jumpHeight: 1.5
   gravity: -9.81
-  groundCheckRadius: 0.2
-  groundCheckOffset: {x: 0, y: -0.1, z: 0}
+  groundCheckRadius: 0.5
+  groundCheckOffset: {x: 0, y: 0.4, z: 0}
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  baseDigDuration: 1
+  digSpeedMultiplier: 1
+  digCooldown: 1
