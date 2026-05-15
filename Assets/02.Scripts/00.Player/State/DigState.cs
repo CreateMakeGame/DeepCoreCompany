@@ -40,7 +40,7 @@ public class DigState : IState
             hasDug = true;
             if (terrain != null)
             {
-                Vector3 digPos = stateMachine.transform.position + stateMachine.transform.forward * 1.0f; // 플레이어 앞쪽 1미터 지점
+                Vector3 digPos = stateMachine.CurrerntDigTarget; // 굴착 목표 위치 (상태 간 공유용)
                 terrain.Dig(digPos, 1.0f); // 반지름 1로 파기
             }
         }

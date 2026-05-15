@@ -19,4 +19,5 @@ public class PlayerData : ScriptableObject
     public float baseDigDuration = 1.0f;    // 굴착 애니메이션의 기본 지속 시간
     public float digSpeedMultiplier = 1.0f; // 굴착 애니메이션 속도 조절을 위한 배수
     public float digCooldown = 1.0f;        // 굴착 사이의 대기 시간
+    public float digRange = 4.0f;           // 굴착이 가능한 최대 거리
 }

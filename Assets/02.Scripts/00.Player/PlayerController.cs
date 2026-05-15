@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
     public bool IsRunPressed { get; private set; }
     public bool IsJumpPressed { get; private set; }
     public bool IsDigPressed { get; private set; }
+
+    public Transform CameraTransform => cameraTransform;    // 카메라 참조
     #endregion
 
     private void Awake()

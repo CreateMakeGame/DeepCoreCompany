@@ -24,3 +24,4 @@ MonoBehaviour:
   baseDigDuration: 1
   digSpeedMultiplier: 1
   digCooldown: 1
+  digRange: 2

@@ -13,6 +13,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     private IState currentState;
     private float lastDigTime = -10f; // 초기값을 충분히 과거로 설정
+    public Vector3 CurrerntDigTarget { get; set; } // 현재 굴착 목표 위치 (상태 간 공유용)
 
     #region States
     public IdleState Idle { get; private set; }
@@ -68,8 +69,19 @@ public class PlayerStateMachine : MonoBehaviour
 
     private bool CanDig()
     {
-        return currentState != Dig &&
-            playerController.IsDigPressed && Time.time >= lastDigTime + data.digCooldown;
+        if (currentState == Dig || !playerController.IsDigPressed || Time.time < lastDigTime + data.digCooldown)
+            return false;
+
+        if (playerController.CameraTransform != null)
+        {
+            Ray ray = new Ray(playerController.CameraTransform.position, playerController.CameraTransform.forward);
+            if (Physics.Raycast(ray, out RaycastHit hit, data.digRange, data.groundLayer))
+            {
+                CurrerntDigTarget = hit.point;
+                return true;
+            }
+        }
+        return false;
     }
     // 공통 복귀 로직 (이동 중이면 Walk, 아니면 Idle)
     public void ReturnToLocomotion()
