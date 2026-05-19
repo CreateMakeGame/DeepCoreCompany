@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
     public bool IsRunPressed { get; private set; }
     public bool IsJumpPressed { get; private set; }
     public bool IsDigPressed { get; private set; }
+    public bool IsInteractPressed { get; private set; }     // 상호작용 버튼 키
 
     public Transform CameraTransform => cameraTransform;    // 카메라 참조
     #endregion
@@ -28,8 +29,10 @@ public class PlayerController : MonoBehaviour
         OnJump();
         OnRun();
         OnDig();
+        OnInteract();
     }
-   
+
+    
 
     private void OnEnable() => controls.Player.Enable(); // 활성화
     private void OnDisable() => controls.Player.Disable(); // 비활성화
@@ -80,6 +83,13 @@ public class PlayerController : MonoBehaviour
         // 파기 버튼이 눌렸을 때 로직을 실행합니다.
         controls.Player.Dig.started += ctx =>  IsDigPressed = true;
         controls.Player.Dig.canceled += ctx =>  IsDigPressed = false;
+    }
+
+    private void OnInteract()
+    {
+        // 상호작용 버튼이 눌렸을 때 로직을 실행합니다.
+        controls.Player.Interact.started += ctx => IsInteractPressed = true;
+        controls.Player.Interact.canceled += ctx => IsInteractPressed = false;
     }
     #endregion
 
