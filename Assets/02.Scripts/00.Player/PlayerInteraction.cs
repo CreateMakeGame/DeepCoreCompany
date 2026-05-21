@@ -1,5 +1,6 @@
-using UnityEngine;
+using NUnit.Framework.Interfaces;
 using TMPro;
+using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -25,20 +26,21 @@ public class PlayerInteraction : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactableLayer))
         {
-            // 상호작용 가능한 물체인지 태그나 컴포넌트로 확인 (여기서는 태그 예시)
-            if (hit.collider.CompareTag("Interactable"))
+            ItemObject itemObj = hit.collider.GetComponent<ItemObject>();
+
+            if (itemObj != null)
             {
-                // 1. UI 텍스트 표시
+                // 1. UI 텍스트 표시 (아이템 이름과 무게를 동적으로 출력)
                 if (interactionText != null)
                 {
-                    interactionText.text = "줍기 [E]";
+                    interactionText.text = itemObj.GetInteractionText();
                     interactionText.gameObject.SetActive(true);
                 }
 
-                // 2. 키 입력 확인 후 상호작용 실행
+                // 2. E 키 입력 시 상호작용
                 if (playerController.IsInteractPressed)
                 {
-                    PerformInteraction(hit.collider.gameObject);
+                    PerformInteraction(itemObj);
                 }
             }
             else
@@ -52,13 +54,13 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-    private void PerformInteraction(GameObject target)
+    private void PerformInteraction(ItemObject itemObj)
     {
-        Debug.Log($"{target.name} 아이템 획득!");
-        
-        // TODO: 이곳에 인벤토리 획득 시스템 코드 추가 연동 (예: Inventory.Instance.AddItem(target))
-        
-        Destroy(target); // 우선 월드에서 제거
+        ItemData data = itemObj.Data;
+        Debug.Log($"[인벤토리 예정] {data.itemName} 획득! 가치: {data.baseValue}, 소속: {data.companyType}");
+        // TODO: 이곳에 인벤토리 획득 시스템 코드 추가 연동 (예: Inventory.Instance.AddItem(itemObj.Data))
+
+        Destroy(itemObj.gameObject); // 우선 월드에서 제거
         HideUI();
     }
 
