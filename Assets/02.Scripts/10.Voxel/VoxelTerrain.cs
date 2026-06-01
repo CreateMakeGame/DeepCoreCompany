@@ -1,5 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
+
+public enum VoxelType
+{
+    Air,
+    Dirt,
+    Iron,
+    Artifact,
+}
+
 [ExecuteAlways] // 에디터에서도 실행되도록 설정
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class VoxelTerrain : MonoBehaviour
@@ -10,13 +19,22 @@ public class VoxelTerrain : MonoBehaviour
     public int depth = 20;              // Z축 길이 (세로)
     public float surfaceLevel = 0.5f;   // 땅과 공기를 구분하는 기준값 (0.5보다 크면 땅)
 
-    private float[,,] densities;        // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
+    [Header("Mineral Settings")]
+    [SerializeField] private GameObject ironPrefab;     // 철 광물 프리팹
+    [SerializeField][Range(0f, 1f)] private float ironChance = 0.05f; // 철광석이 매립될 확률 (5%)
+    [SerializeField] private int ironMaxHeight = 5;
+
+
+    private float[,,] densities;            // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
+    private VoxelType[,,] voxelTypes;        // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
     private List<Vector3> vertices = new List<Vector3>();   // 만들어질 메쉬의 꼭짓점들
     private List<int> triangles = new List<int>();          // 꼭짓점을 이어붙일 삼각형의 순서
 
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
     private Mesh mesh;
+
+    
 
     void OnEnable()
     {
@@ -60,6 +78,7 @@ public class VoxelTerrain : MonoBehaviour
     {
         // 큐브의 '모서리'를 기준으로 계산하므로 배열 크기는 width + 1 입니다.
         densities = new float[width + 1, height + 1, depth + 1];
+        voxelTypes = new VoxelType[width + 1, height + 1, depth + 1];    // 각 점의 VoxelType을 저장하는 배열
 
         for (int x = 0; x <= width; x++)
         {
@@ -70,8 +89,26 @@ public class VoxelTerrain : MonoBehaviour
 
                 for (int y = 0; y <= height; y++)
                 {
-                    // 현재 점의 높이(y)가 계산된 표면(surfaceHeight)보다 낮으면 밀도를 1(땅)로 설정합니다.
-                    densities[x, y, z] = (y < surfaceHeight) ? 1f : 0f;
+                    if( y < surfaceHeight)
+                    {
+                        densities[x, y, z] = 1f;
+
+                        // 땅으로 간주되는 점에 대해 VoxelType을 결정합니다.
+                        if (y < ironMaxHeight && Random.value < ironChance)
+                        {
+                            voxelTypes[x, y, z] = VoxelType.Iron; // 철광석
+                        }
+                        else
+                        {
+                            voxelTypes[x, y, z] = VoxelType.Dirt; // 일반 흙
+                        }
+                    }
+                    else
+                    {
+                        densities[x, y, z] = 0f;
+                        voxelTypes[x, y, z] = VoxelType.Air;
+                    }
+                    
                 }
             }
         }
@@ -102,7 +139,22 @@ public class VoxelTerrain : MonoBehaviour
                         float dist = Vector3.Distance(new Vector3(x, y, z), new Vector3(centerX, centerY, centerZ));
                         if (dist <= radius)
                         {
-                            densities[x, y, z] = 0f; // 파낸 곳을 공기(0)로 만듦
+                            // 아직 파괴되지 않은 땅(밀도 > surfaceLevel)이었는지 확인
+                            if (densities[x, y, z] > surfaceLevel)
+                            {
+                                // 그 자리가 철광석 데이터였다면 프리팹 생성!
+                                if (voxelTypes[x, y, z] == VoxelType.Iron && ironPrefab != null)
+                                {
+                                    // 인덱스 좌표를 다시 유니티 월드 좌표로 역변환
+                                    Vector3 spawnPos = new Vector3(x, y, z) + transform.position - offset;
+                                    Instantiate(ironPrefab, spawnPos, Quaternion.identity);
+                                }
+
+                                // 파내졌으므로 물질 상태를 공기(Air)로 변경
+                                voxelTypes[x, y, z] = VoxelType.Air;
+                            }
+
+                            densities[x, y, z] = 0f;
                         }
                     }
                 }
@@ -194,6 +246,38 @@ public class VoxelTerrain : MonoBehaviour
         {
             meshCollider.sharedMesh = null; // 초기화 후 다시 대입해야 즉시 갱신됨
             meshCollider.sharedMesh = mesh;
+        }
+    }
+
+
+    private void OnDrawGizmosSelected()
+    {
+        // 게임이 실행 중이지 않거나 배열이 생성되지 않았다면 패스
+        if (voxelTypes == null) return;
+
+        // 기즈모 색상을 잘 보이는 색(예: 빨간색)으로 설정
+        Gizmos.color = Color.red;
+
+        Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
+
+        // 전체 격자를 돌면서 철광석이 있는 위치를 찾아냅니다.
+        for (int x = 0; x <= width; x++)
+        {
+            for (int y = 0; y <= height; y++)
+            {
+                for (int z = 0; z <= depth; z++)
+                {
+                    // 해당 좌표의 데이터가 Iron이라면!
+                    if (voxelTypes[x, y, z] == VoxelType.Iron)
+                    {
+                        // 인덱스 좌표를 유니티 월드 좌표로 변환
+                        Vector3 worldPos = new Vector3(x, y, z) + transform.position - offset;
+
+                        // 그 위치에 0.3 크기의 선으로 된 큐브(상자)를 그립니다.
+                        Gizmos.DrawWireCube(worldPos, Vector3.one * 0.3f);
+                    }
+                }
+            }
         }
     }
 }

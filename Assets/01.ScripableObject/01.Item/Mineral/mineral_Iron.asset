@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0008a243f8de0041a42574b11fe1469, type: 3}
-  m_Name: Test
+  m_Name: mineral_Iron
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemID: mineral_Iron_01
+  itemID: mineral_Iron
   itemName: "\uCCA0\uAD11\uC11D"
-  ItemDescription: "\uD14D\uC2A4\uD2B8 \uAD11\uBB3C\n"
+  ItemDescription: "\uB2E8\uB2E8\uD55C \uCCA0\uAD11\uC11D\t"
   itemIcon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   itemType: 0
   companyType: 0
