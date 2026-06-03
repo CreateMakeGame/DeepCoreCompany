@@ -15,7 +15,7 @@ MonoBehaviour:
   itemID: mineral_Iron
   itemName: "\uCCA0\uAD11\uC11D"
   ItemDescription: "\uB2E8\uB2E8\uD55C \uCCA0\uAD11\uC11D\t"
-  itemIcon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  itemIcon: {fileID: 21300000, guid: 2b93dbf901886db458a99feb67e5628c, type: 3}
   itemType: 0
   companyType: 0
   baseValue: 2

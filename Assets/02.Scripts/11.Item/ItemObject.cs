@@ -23,11 +23,15 @@ public class ItemObject : MonoBehaviour, IInteractable
     // 3. 진짜로 주웠을 때의 처리
     public void Interact(GameObject player)
     {
-        Debug.Log($"[인벤토리 추가] {itemData.itemName} (카테고리: {itemData.itemType})");
+        if (itemData == null) return;
 
-        // TODO: player.GetComponent<Inventory>().AddItem(itemData);
+        // 싱글톤 인벤토리에 이 아이템 추가 요청
+        bool isSuccess = Inventory.Instance.AddItem(itemData);
 
-        // 필드에서 아이템 제거
-        Destroy(gameObject);
+        if (isSuccess)
+        {
+            // 추가 성공 시에만 월드에서 아이템 제거
+            Destroy(gameObject);
+        }
     }
 }
