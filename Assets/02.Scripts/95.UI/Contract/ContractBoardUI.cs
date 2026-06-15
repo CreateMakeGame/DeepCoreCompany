@@ -32,12 +32,26 @@ public class ContractBoardUI : MonoBehaviour
 
     void Start()
     {
-        if(closeButton != null)
+        if(UIManager.Instance != null)
+        {
+            UIManager.Instance.RegisterLocalUI(this);
+        }
+
+        if (closeButton != null)
         {
             closeButton.onClick.AddListener(CloseBoard);
         }
         gameObject.SetActive(false); // 시작할 때는 UI를 꺼둡니다.
     }
+    private void OnDestroy()
+    {
+        // 씬이 끝나서 내가 파괴될 때는 등록을 해제합니다.
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UnregisterLocalUI<ContractBoardUI>();
+        }
+    }
+
     private void OnEnable()
     {
         RefreshBoard();
@@ -101,11 +115,6 @@ public class ContractBoardUI : MonoBehaviour
         // TODO: SceneManager.LoadScene("행성 씬 이름"); 
         CloseBoard();
     }
-
-    private void CloseBoard()
-    {
-        gameObject.SetActive(false);
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
+    public void OpenBoard() => UIManager.Instance.OpenUI(gameObject);
+    public void CloseBoard() => UIManager.Instance.CloseUI(gameObject);
 }

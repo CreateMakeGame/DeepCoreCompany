@@ -20,19 +20,16 @@ public class Contract
 
     public bool isAccepted = false;  // 계약 수락 여부
 }
-public class ContractManager : Singleton<ContractManager>
+public class ContractManager : MonoBehaviour
 {
+    public static ContractManager Instance => GlobalManagers.Instance != null ? GlobalManagers.Instance.Contract : null;
+    
     [Header("Progression Settings")]
     public  int totalCompletedContracts = 0; // 총 완료된 계약 수
 
     [Header("Available Contracts on Board")]
     public List<Contract> availableContracts = new List<Contract>();        // 현재 게시판에 나와 있는 계약 목록
     public List<CompanyType> unlockedCompanies = new List<CompanyType>();   // 잠금 해제된 회사 목록
-
-    protected override void Awake()
-    {
-        base.Awake();
-    }
 
     private void Start()
     {
@@ -44,6 +41,11 @@ public class ContractManager : Singleton<ContractManager>
     {
         totalCompletedContracts++;
         // TODO: Inventory.Instance.Gold += contract.rewardMoney; (돈 지급)
+        if (Inventory.Instance != null)
+        {
+            // Inventory 스크립트에 Gold 변수가 생기면 아래 주석을 해제하시면 됩니다.
+            // Inventory.Instance.Gold += contract.rewardMoney; 
+        }
 
         UpdateUnlockedCompanies(); // 새로운 회사가 해금될 조건인지 체크
         GenerateNewContracts();    // 게시판 의뢰서 목록 갱신

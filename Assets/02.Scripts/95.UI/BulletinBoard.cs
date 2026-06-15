@@ -27,21 +27,15 @@ public class BulletinBoard : MonoBehaviour, IInteractable
 
     private void OpenContractBoard()
     {
-        if (contractBoardUI != null)
-        {
-            // UI를 켜고, ContractManager.Instance.availableContracts 리스트를 받아와
-            // 화면에 슬롯 형태로 의뢰서 목록을 뿌려줍니다.
-            contractBoardUI.SetActive(true);
+        ContractBoardUI board = UIManager.Instance.GetLocalUI<ContractBoardUI>();
 
-            // 마우스 커서 풀기 조작
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+        if (board != null)
+        {
+            board.OpenBoard();
         }
         else
         {
             Debug.LogWarning("의뢰서 보드 UI 패널이 연결되지 않았습니다!");
         }
     }
-
-
 }

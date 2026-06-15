@@ -1,10 +1,10 @@
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Inventory : Singleton<Inventory>
+public class Inventory : MonoBehaviour
 {
+    public static Inventory Instance => GlobalManagers.Instance.Inventory != null ? GlobalManagers.Instance.Inventory : null;
     [System.Serializable]
     public class InventoryItem
     {
@@ -25,13 +25,7 @@ public class Inventory : Singleton<Inventory>
     public int totalValue = 0;          // 총 아이템 수량
 
     public event Action OnInventoryChanged;  // 인벤토리가 변경될 때 호출되는 이벤트
-
-    protected override void Awake()
-    {
-        base.Awake();
-        // 초기화 작업이 필요한 경우 여기에 작성
-    }
-
+   
     public bool AddItem(ItemData itemData)
     {
         if (currentWeight + itemData.weight > maxWeight)

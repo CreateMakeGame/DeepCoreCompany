@@ -12,6 +12,18 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float interactRange = 3.0f;        // 상호작용 범위
     [SerializeField] private LayerMask interactLayerMask;       // 상호작용 가능한 레이어
 
+    private void Start()
+    {
+        if (interactionText != null)
+        {
+            interactionText.gameObject.SetActive(false); // 시작 시 UI 숨김
+        }
+        else
+        {
+            Debug.LogWarning("상호작용 UI 텍스트가 연결되지 않았습니다!");
+        }
+    }
+
     private void Update()
     {
         CheckForInteractables();
