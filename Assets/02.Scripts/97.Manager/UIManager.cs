@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -8,7 +10,7 @@ public class UIManager : MonoBehaviour
     [Header("Global UI Prefab (런타임에 소환할 프리팹)")]
     [SerializeField] private GameObject globalUIRootPrefab;
     public GameObject InventoryUI { get; private set; }
-    public GameObject InteractableUI { get; private set; }
+    public InteractableUI InteractableUI { get; private set; }
 
     // 현재 씬에 존재하는 로컬 UI들을 타입별로 안전하게 보관할 딕셔너리
     private Dictionary<System.Type, MonoBehaviour> localUIs = new Dictionary<System.Type, MonoBehaviour>();
@@ -31,17 +33,20 @@ public class UIManager : MonoBehaviour
             DontDestroyOnLoad(globalUIRoot);
 
             // 글로벌 UI 요소들을 프리팹에서 찾아서 참조로 저장
-            Transform invTransform = globalUIRoot.transform.Find("GlobalScreenCanvas/InventoryUI");
-            if (invTransform != null) InventoryUI = invTransform.gameObject;
-
-            Transform interTransform = globalUIRoot.transform.Find("GlobalHUDCanvas/InteractableUI");
-            if (interTransform != null) InteractableUI = interTransform.gameObject;
+            PrefabReference(globalUIRoot);
 
             // 필요한 경우, 글로벌 UI 요소들을 초기 상태로 설정
             if (InventoryUI != null) InventoryUI.SetActive(false);
-            if (InteractableUI != null) InteractableUI.SetActive(true);
         }
-        
+    }
+
+    private void PrefabReference(GameObject globalUIRoot)
+    {
+        Transform invTransform = globalUIRoot.transform.Find("GlobalScreenCanvas/InventoryUI");
+        if (invTransform != null) InventoryUI = invTransform.gameObject;
+
+        Transform interTransform = globalUIRoot.transform.Find("GlobalHUDCanvas/InteractableUI");
+        if (interTransform != null) InteractableUI = interTransform.GetComponent<InteractableUI>();
     }
 
     #region 로컬 UI 동적 등록 시스템

@@ -3223,7 +3223,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
   playerController: {fileID: 1202160552376221680}
-  interactionText: {fileID: 0}
   interactRange: 2
   interactLayerMask:
     serializedVersion: 2
