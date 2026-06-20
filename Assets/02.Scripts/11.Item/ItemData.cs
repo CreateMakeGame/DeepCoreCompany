@@ -16,7 +16,7 @@ public enum CompanyType
     AegisDefense,           // 군수 기업
 }
 
-[CreateAssetMenu(fileName = "New Item Data", menuName = "SO/Item Data")]
+[CreateAssetMenu(fileName = "New Item Data", menuName = "ScriptableObjects/Item Data")]
 public class ItemData : ScriptableObject
 {
     [Header("아이템 기본 정보")]

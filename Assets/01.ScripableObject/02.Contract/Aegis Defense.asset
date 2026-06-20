@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 725c32881db5b8649894dcf7ee8485c3, type: 3}
+  m_Name: Aegis Defense
+  m_EditorClassIdentifier: Assembly-CSharp::ContractTemplateSO
+  company: 3
+  contractTitleTemplate: 
+  difficulty: "\uC911"
+  region: "A \uAD6C\uC5ED"
+  minDeadline: 3
+  maxDeadline: 7
+  minRewardMoney: 1000
+  maxRewardMoney: 5000
+  penaltyMoney: 500
+  minTargetKinds: 1
+  maxTargetKinds: 5
+  itemPool:
+  - itemName: "\uC704\uD5D8 \uAD11\uBB3C"
+    itemType: 3
+    minQuantity: 1
+    maxQuantity: 3
+  - itemName: "\uC5D0\uB108\uC9C0 \uCF54\uC5B4"
+    itemType: 3
+    minQuantity: 1
+    maxQuantity: 3
+  - itemName: "\uBC29\uC0AC\uC131 \uBB3C\uC9C8"
+    itemType: 3
+    minQuantity: 1
+    maxQuantity: 3

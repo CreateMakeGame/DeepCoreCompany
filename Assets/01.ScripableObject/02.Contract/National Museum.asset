@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 725c32881db5b8649894dcf7ee8485c3, type: 3}
+  m_Name: National Museum
+  m_EditorClassIdentifier: Assembly-CSharp::ContractTemplateSO
+  company: 1
+  contractTitleTemplate: Test2
+  difficulty: "\uC911"
+  region: "Test1 \uAD6C\uC5ED"
+  minDeadline: 1
+  maxDeadline: 3
+  minRewardMoney: 1000
+  maxRewardMoney: 5000
+  penaltyMoney: 500
+  minTargetKinds: 1
+  maxTargetKinds: 5
+  itemPool:
+  - itemName: "\uAE08\uD654"
+    itemType: 1
+    minQuantity: 50
+    maxQuantity: 100
+  - itemName: "\uD314\uCC0C"
+    itemType: 1
+    minQuantity: 1
+    maxQuantity: 10
+  - itemName: "\uC11D\uD310"
+    itemType: 1
+    minQuantity: 1
+    maxQuantity: 3

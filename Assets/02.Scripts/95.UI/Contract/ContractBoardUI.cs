@@ -94,8 +94,30 @@ public class ContractBoardUI : MonoBehaviour
         if (data == null) return;
 
         detailRightTitle.text = $"[{data.company}] 의뢰서";
-        goalText.text = $"목적 : {data.targetItem}";
-        quantityText.text = quantityText.text = $"수량 : {data.targetQuantity}개 필요 (0/{data.targetQuantity})";
+
+        string goalBuilder = "목적 :\n";
+        string quantityBuilder = "요구 수량 :\n";
+
+        for (int i = 0; i < data.targets.Count; i++)
+        {
+            ContractTarget target = data.targets[i];
+
+            // 예: " • 철광석 (Mineral)"
+            goalBuilder += $" • {target.itemName} ({target.itemType})";
+            // 예: " • 5개 필요 (0/5)"
+            quantityBuilder += $" • {target.targetQuantity}개 필요 ({target.currentQuantity}/{target.targetQuantity})";
+
+            // 마지막 줄이 아니라면 줄바꿈(\n)을 추가하여 가독성을 높입니다.
+            if (i < data.targets.Count - 1)
+            {
+                goalBuilder += "\n";
+                quantityBuilder += "\n";
+            }
+        }
+
+        if (goalText != null) goalText.text = goalBuilder;
+        if (quantityText != null) quantityText.text = quantityBuilder;
+
         regionText.text = $"지역 : {data.region}";
         deadlineText.text = $"기한 : {data.deadline}일";
         rewardText.text = $"보상 : {data.rewardMoney:#,##0} Credits";

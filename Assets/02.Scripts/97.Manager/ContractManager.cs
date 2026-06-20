@@ -2,28 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class Contract
-{
-    public string contractID;
-    public CompanyType company;
-    public string contractTitle;    // 의뢰 이름
-    public ItemType targetItem;     // 목표 아이템
-    public int targetQuantity;      // 목표 수량
-    public int rewardMoney;         // 보상 금액
-
-    [Header("UI Display Data")] 
-    public string difficulty;     // 난이도
-    public string region;         // 지역
-    public int deadline;          // 기한 (일)
-    public int penaltyMoney;      // 패널티 금액
-
-    public bool isAccepted = false;  // 계약 수락 여부
-}
 public class ContractManager : MonoBehaviour
 {
     public static ContractManager Instance => GlobalManagers.Instance != null ? GlobalManagers.Instance.Contract : null;
-    
+
+    [Header("SO Templates")]
+    [SerializeField] private List<ContractTemplateSO> contractTemplates = new List<ContractTemplateSO>();
+
     [Header("Progression Settings")]
     public  int totalCompletedContracts = 0; // 총 완료된 계약 수
 
@@ -75,28 +60,61 @@ public class ContractManager : MonoBehaviour
     {
         availableContracts.Clear();
 
-        // 잠금 해제된 회사 목록을 기반으로 새로운 계약 생성
-        // 해금된 회사당 1~2개씩 의뢰서 생성하기
+        // 해금된 회사들을 순회하면서 의뢰 생성
         foreach (CompanyType company in unlockedCompanies)
         {
-            ItemType randomType = ItemType.Mineral;
-            if (company == CompanyType.NationalMiseum) randomType = ItemType.Artifact;
-            else if (company == CompanyType.HelixBiolab) randomType = ItemType.Sample;
-            else if (company == CompanyType.AegisDefense) randomType = ItemType.Hazardous;
+            // 1. 해당 회사에 맞는 SO 템플릿 찾기
+            ContractTemplateSO template = contractTemplates.Find(t => t.company == company);
+            if (template == null || template.itemPool.Count == 0) continue;
 
-            // 예시용 임시 의뢰 생성 (나중에 각 회사별 아이템 Pool에서 뽑도록 고도화 가능)
+            // 2. 새로운 실물 의뢰 인스턴스 생성
             Contract newContract = new Contract
             {
-                contractID = Guid.NewGuid().ToString(),
+                contractID = System.Guid.NewGuid().ToString(),
                 company = company,
-                targetItem = randomType,
-                targetQuantity = UnityEngine.Random.Range(2, 6),
-                rewardMoney = UnityEngine.Random.Range(1000, 5000)
+                contractTitle = $"{template.contractTitleTemplate} #{UnityEngine.Random.Range(100, 999)}",
+                difficulty = template.difficulty,
+                region = template.region,
+                deadline = UnityEngine.Random.Range(template.minDeadline, template.maxDeadline + 1),
+                rewardMoney = UnityEngine.Random.Range(template.minRewardMoney, template.maxRewardMoney + 1),
+                penaltyMoney = template.penaltyMoney
             };
+
+            // 3. 목표 종류 개수 결정 (예: 1종류 ~ 최대 5종류 중 랜덤)
+            int targetKindsCount = UnityEngine.Random.Range(template.minTargetKinds, template.maxTargetKinds + 1);
+            // 안전장치: 템플릿 아이템 풀에 들어있는 개수보다 많이 뽑을 순 없으므로 보정
+            targetKindsCount = Mathf.Min(targetKindsCount, template.itemPool.Count);
+
+            // 4. 아이템 풀 복사 후 무작위로 섞기 (셔플 연산으로 중복 제거)
+            List<TargetItemPoolData> shuffledPool = new List<TargetItemPoolData>(template.itemPool);
+            for (int i = 0; i < shuffledPool.Count; i++)
+            {
+                int rnd = UnityEngine.Random.Range(i, shuffledPool.Count);
+                var temp = shuffledPool[i];
+                shuffledPool[i] = shuffledPool[rnd];
+                shuffledPool[rnd] = temp;
+            }
+
+            // 5. 섞인 풀에서 정해진 종류 개수만큼 서브 목표(`ContractTarget`) 생성해서 추가
+            for (int i = 0; i < targetKindsCount; i++)
+            {
+                TargetItemPoolData poolData = shuffledPool[i];
+
+                ContractTarget target = new ContractTarget
+                {
+                    itemName = poolData.itemName,
+                    itemType = poolData.itemType,
+                    // ⭕ 중요: 각 아이템별로 지정된 수량 제한(최대 3개, 최대 100개 등) 내에서 무작위 결정!
+                    targetQuantity = UnityEngine.Random.Range(poolData.minQuantity, poolData.maxQuantity + 1),
+                    currentQuantity = 0
+                };
+
+                newContract.targets.Add(target);
+            }
 
             availableContracts.Add(newContract);
         }
 
-        Debug.Log($"게시판 갱신 완료! 현재 참여 회사 수: {unlockedCompanies.Count}개");
+        Debug.Log($"게시판 갱신 완료! 진짜 SO 데이터 기반 의뢰서 생성됨.");
     }
 }
