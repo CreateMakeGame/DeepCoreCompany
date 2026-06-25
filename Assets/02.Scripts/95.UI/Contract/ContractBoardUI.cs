@@ -142,13 +142,14 @@ public class ContractBoardUI : MonoBehaviour
         data.isAccepted = true;
 
         // 2. 데이터에 저장된 씬 이름으로 이동합니다.
+        if (ContractManager.Instance != null)
+        {
+            ContractManager.Instance.currentAcceptedContract = data;
+        }
+
         if (!string.IsNullOrEmpty(data.targetSceneName))
         {
             SceneManager.LoadScene(data.targetSceneName);
-        }
-        else
-        {
-            Debug.LogError("이동할 씬 이름이 지정되지 않았습니다!");
         }
         CloseBoard();
     }

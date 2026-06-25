@@ -16,6 +16,7 @@ MonoBehaviour:
   contractTitleTemplate: Test1
   difficulty: "\uD558"
   region: "Test \uAD6C\uC5ED"
+  targetSceneName: Scene_Test
   minDeadline: 1
   maxDeadline: 3
   minRewardMoney: 1000
