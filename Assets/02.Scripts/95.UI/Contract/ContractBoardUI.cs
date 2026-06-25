@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ContractBoardUI : MonoBehaviour
@@ -23,9 +24,9 @@ public class ContractBoardUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI goalText;
     [SerializeField] private TextMeshProUGUI quantityText;
     [SerializeField] private TextMeshProUGUI regionText;
-    [SerializeField] private TextMeshProUGUI deadlineText;
+    //[SerializeField] private TextMeshProUGUI deadlineText;
     [SerializeField] private TextMeshProUGUI rewardText;
-    [SerializeField] private TextMeshProUGUI penaltyText;
+    //[SerializeField] private TextMeshProUGUI penaltyText;
     [SerializeField] private Button acceptButton;
 
     private List<GameObject> spawnedItems = new List<GameObject>();
@@ -119,14 +120,20 @@ public class ContractBoardUI : MonoBehaviour
         if (quantityText != null) quantityText.text = quantityBuilder;
 
         regionText.text = $"지역 : {data.region}";
-        deadlineText.text = $"기한 : {data.deadline}일";
+        //deadlineText.text = $"기한 : {data.deadline}일";
         rewardText.text = $"보상 : {data.rewardMoney:#,##0} Credits";
-        penaltyText.text = $"패널티 : 기한 초과 시 평판 -{data.penaltyMoney}";
+        //penaltyText.text = $"패널티 : 기한 초과 시 평판 -{data.penaltyMoney}";
 
         if(acceptButton != null)
         {
             acceptButton.onClick.RemoveAllListeners();
             acceptButton.onClick.AddListener(() => AcceptContract(data));
+        }
+        // LayoutRebuilder를 사용하여 레이아웃을 즉시 재빌드합니다.
+        if (goalText != null && goalText.transform.parent != null)
+        {
+            RectTransform parentRect = goalText.transform.parent as RectTransform;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
         }
     }
     private void AcceptContract(Contract data)
@@ -134,7 +141,15 @@ public class ContractBoardUI : MonoBehaviour
         Debug.Log($"{data.contractTitle} 수락 완료! 환경 맵으로 이동 로직을 실행합니다.");
         data.isAccepted = true;
 
-        // TODO: SceneManager.LoadScene("행성 씬 이름"); 
+        // 2. 데이터에 저장된 씬 이름으로 이동합니다.
+        if (!string.IsNullOrEmpty(data.targetSceneName))
+        {
+            SceneManager.LoadScene(data.targetSceneName);
+        }
+        else
+        {
+            Debug.LogError("이동할 씬 이름이 지정되지 않았습니다!");
+        }
         CloseBoard();
     }
     public void OpenBoard() => UIManager.Instance.OpenUI(gameObject);

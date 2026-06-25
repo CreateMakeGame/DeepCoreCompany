@@ -20,7 +20,7 @@ public class ContractListItemUI : MonoBehaviour
 
         //companyLogoImage.sprite = ContractManager.Instance.GetCompanyLogo(data.company);
         companyTitleText.text = $"[{data.company}] {data.contractTitle}";
-        infoText.text = $"난이도: {data.difficulty}  |  지역: {data.region}  |  기한: {data.deadline}일";
+        infoText.text = $"난이도: {data.difficulty}  |  지역: {data.region}";
         rewardText.text = $"{data.rewardMoney:#,##0} Cr";
     }
 

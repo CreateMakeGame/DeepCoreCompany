@@ -9,6 +9,7 @@ public class ContractTemplateSO : ScriptableObject
     public string contractTitleTemplate; // 의뢰 제목 접두사 혹은 템플릿
     public string difficulty = "중";
     public string region = "A 구역";
+    public string targetSceneName;
 
     [Header("Random Range Settings")]
     public int minDeadline = 3;

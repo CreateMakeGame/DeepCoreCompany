@@ -12,6 +12,8 @@ public class ContractManager : MonoBehaviour
     [Header("Progression Settings")]
     public  int totalCompletedContracts = 0; // 총 완료된 계약 수
 
+    public Contract currentAcceptedContract; // 현재 계약
+
     [Header("Available Contracts on Board")]
     public List<Contract> availableContracts = new List<Contract>();        // 현재 게시판에 나와 있는 계약 목록
     public List<CompanyType> unlockedCompanies = new List<CompanyType>();   // 잠금 해제된 회사 목록
@@ -72,12 +74,13 @@ public class ContractManager : MonoBehaviour
             {
                 contractID = System.Guid.NewGuid().ToString(),
                 company = company,
-                contractTitle = $"{template.contractTitleTemplate} #{UnityEngine.Random.Range(100, 999)}",
+                contractTitle = template.contractTitleTemplate,
                 difficulty = template.difficulty,
                 region = template.region,
-                deadline = UnityEngine.Random.Range(template.minDeadline, template.maxDeadline + 1),
+                targetSceneName = template.targetSceneName,
+                //deadline = UnityEngine.Random.Range(template.minDeadline, template.maxDeadline + 1),
                 rewardMoney = UnityEngine.Random.Range(template.minRewardMoney, template.maxRewardMoney + 1),
-                penaltyMoney = template.penaltyMoney
+                //penaltyMoney = template.penaltyMoney
             };
 
             // 3. 목표 종류 개수 결정 (예: 1종류 ~ 최대 5종류 중 랜덤)
@@ -104,7 +107,7 @@ public class ContractManager : MonoBehaviour
                 {
                     itemName = poolData.itemName,
                     itemType = poolData.itemType,
-                    // ⭕ 중요: 각 아이템별로 지정된 수량 제한(최대 3개, 최대 100개 등) 내에서 무작위 결정!
+                    // 각 아이템별로 지정된 수량 제한(최대 3개, 최대 100개 등) 내에서 무작위 결정!
                     targetQuantity = UnityEngine.Random.Range(poolData.minQuantity, poolData.maxQuantity + 1),
                     currentQuantity = 0
                 };
