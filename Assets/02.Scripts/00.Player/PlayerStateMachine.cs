@@ -9,10 +9,12 @@ public class PlayerStateMachine : MonoBehaviour
     public PlayerAnimationData AnimationData;
     public PlayerController playerController { get; private set; }
     public PlayerMover Mover { get; private set; }
+    public PlayerStatus Status { get; private set; }
     public Animator Animator { get; private set; }
 
     private IState currentState;
-    private float lastDigTime = -10f; // 초기값을 충분히 과거로 설정
+    public IState CurrentState => currentState;     // 현재 상태를 외부에서 읽기 전용으로 접근 가능
+    private float lastDigTime = -10f;               // 초기값을 충분히 과거로 설정
     public Vector3 CurrerntDigTarget { get; set; } // 현재 굴착 목표 위치 (상태 간 공유용)
 
     #region States
@@ -26,6 +28,7 @@ public class PlayerStateMachine : MonoBehaviour
     {
         playerController = GetComponent<PlayerController>();
         Mover = GetComponent<PlayerMover>();
+        Status = GetComponent<PlayerStatus>();
         Animator = GetComponentInChildren<Animator>();
         AnimationData.Initialize();
         InitializeStates();
@@ -69,7 +72,11 @@ public class PlayerStateMachine : MonoBehaviour
 
     private bool CanDig()
     {
+        // 굴착 중이거나, 키를 누르지 않았거나, 쿨타임 중이면 불가능
         if (currentState == Dig || !playerController.IsDigPressed || Time.time < lastDigTime + data.digCooldown)
+            return false;
+
+        if (Status != null && !Status.HasStamina())
             return false;
 
         if (playerController.CameraTransform != null)
@@ -91,5 +98,4 @@ public class PlayerStateMachine : MonoBehaviour
         else
             ChangeState(Idle);
     }
-
 }

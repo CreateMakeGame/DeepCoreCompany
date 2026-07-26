@@ -93,6 +93,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f40be0bf5112e74bb6ca13204867a24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Manager
+  <Game>k__BackingField: {fileID: 1348668402629777330}
+  <Camera>k__BackingField: {fileID: 5546460034815775548}
+  <Inventory>k__BackingField: {fileID: 0}
+  <Contract>k__BackingField: {fileID: 7767808933630035955}
+  <UI>k__BackingField: {fileID: 7095189717713610772}
 --- !u!1 &3955649444331664934
 GameObject:
   m_ObjectHideFlags: 0
@@ -181,7 +186,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5f6d40a746ddc74c90877d91551771c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ContractManager
+  contractTemplates:
+  - {fileID: 11400000, guid: 43086781dd890404f8c5e9f6785dedc3, type: 2}
+  - {fileID: 11400000, guid: f3252cc99c01e4045bc93136f1f67544, type: 2}
+  - {fileID: 11400000, guid: 79ec3918eecfca24abb24798aaf5b663, type: 2}
+  - {fileID: 11400000, guid: 3e8a2507d1b6afa48af294f21375dc11, type: 2}
   totalCompletedContracts: 0
+  currentAcceptedContract:
+    contractID: 
+    company: 0
+    contractTitle: 
+    targets: []
+    difficulty: 
+    region: 
+    targetSceneName: 
+    rewardMoney: 0
+    isAccepted: 0
   availableContracts: []
   unlockedCompanies: 
 --- !u!1 &7255447391146799682

@@ -2,6 +2,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PlayerData", menuName = "ScriptableObjects/PlayerData")]
 public class PlayerData : ScriptableObject
 {
+    [Header("Player Settings")]
+    public float maxHp = 100f;
+    public float maxStamina = 100f;
+    public float staminaDrainRate = 20f;    // 초당 스테미너 소모량
+    public float staminaRegenRate = 10f;    // 초당 스테미너 회복량
+    public float regenDelay = 2f;           // 스테미너 회복 시작 전 대기 시간
+
     [Header("Move Speeds")]
     public float baseSpeed = 5f;        // 기본 걷기 속도
     public float runSpeed = 8f;         // 달리기 속도

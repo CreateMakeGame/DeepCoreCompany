@@ -44,7 +44,8 @@ public class PlayerController : MonoBehaviour
 
     private void AlignPlayerWithCamera()
     {
-        if (cameraTransform == null) return;
+        // 커서가 활성화되어 있는 경우나 카메라 Transform이 null인 경우에는 회전 로직을 수행하지 않습니다.
+        if (Cursor.visible || cameraTransform == null) return;
 
         // 카메라의 전방(Forward) 방향에서 수평 평면(X, Z) 벡터만 추출합니다.
         Vector3 cameraForward = cameraTransform.forward;
@@ -55,6 +56,23 @@ public class PlayerController : MonoBehaviour
             // 카메라가 바라보는 방향을 향해 몸통의 회전값을 설정
             Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
             transform.rotation = targetRotation;
+        }
+    }
+
+    public void SetInputActive(bool isActive)
+    {
+        if (isActive)
+            controls.Player.Enable();
+        else
+        {
+            controls.Player.Disable();
+
+            // 입력 상태 초기화
+            moveInput = Vector2.zero;
+            IsRunPressed = false;
+            IsJumpPressed = false;
+            IsDigPressed = false;
+            IsInteractPressed = false;
         }
     }
 

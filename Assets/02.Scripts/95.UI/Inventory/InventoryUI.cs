@@ -84,22 +84,30 @@ public class InventoryUI : MonoBehaviour
         if (Background == null) return;
 
         isInventoryOpen = !isInventoryOpen;
-        Background.SetActive(isInventoryOpen);
 
         if (isInventoryOpen)
         {
-            // 인벤토리가 열릴 때: 마우스 풀고 화면 갱신
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.OpenUI(Background);
+            }
+            else
+            {
+                Background.SetActive(true);
+            }
             UpdateInventoryUI();
             UpdateContractUI();
         }
         else
         {
-            // 인벤토리가 닫힐 때: 마우스 다시 가리기
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.CloseUI(Background);
+            }
+            else
+            {
+                Background.SetActive(false);
+            }
         }
     }
     private void RefreshOpenedInventory()

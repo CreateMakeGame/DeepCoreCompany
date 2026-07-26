@@ -1,7 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -9,6 +8,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Global UI Prefab (런타임에 소환할 프리팹)")]
     [SerializeField] private GameObject globalUIRootPrefab;
+    private GameObject globalUIRootInstance;
     public GameObject InventoryUI { get; private set; }
     public InteractableUI InteractableUI { get; private set; }
 
@@ -20,7 +20,17 @@ public class UIManager : MonoBehaviour
     {
         InitGlobalUIRoot();
     }
+    private void OnEnable()
+    {
+        // 씬 로드 이벤트 구독 (씬 이동 시 카메라 재연결용)
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
+    private void OnDisable()
+    {
+        // 구독 해제
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
     private void InitGlobalUIRoot()
     {
         if (globalUIRootPrefab != null)
@@ -37,6 +47,38 @@ public class UIManager : MonoBehaviour
 
             // 필요한 경우, 글로벌 UI 요소들을 초기 상태로 설정
             if (InventoryUI != null) InventoryUI.SetActive(false);
+
+            RefreshCanvasCamera();// 초기 카메라 설정
+        }
+        else
+        {
+            Debug.LogError("[UIManager] globalUIRootPrefab이 인스펙터에 할당되지 않았습니다!");
+        }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 씬 전환이 완료되면 새로 로드된 메인 카메라를 Canvas에 재바인딩
+        RefreshCanvasCamera();
+    }
+
+    /// <summary>
+    /// GlobalUIRoot 내의 ScreenSpaceCamera 모드 Canvas들에 현재 씬의 Main Camera를 연결
+    /// </summary>
+    private void RefreshCanvasCamera()
+    {
+        if (globalUIRootInstance == null) return;
+
+        Camera mainCam = Camera.main;
+        if (mainCam == null) return;
+
+        Canvas[] canvases = globalUIRootInstance.GetComponentsInChildren<Canvas>(true);
+        foreach (Canvas canvas in canvases)
+        {
+            if (canvas.renderMode == RenderMode.ScreenSpaceCamera)
+            {
+                canvas.worldCamera = mainCam;
+            }
         }
     }
 
@@ -72,9 +114,18 @@ public class UIManager : MonoBehaviour
     public T GetLocalUI<T>() where T : MonoBehaviour
     {
         System.Type type = typeof(T);
-        if (localUIs.TryGetValue(type, out var ui))
+
+        if (localUIs.TryGetValue(type, out var ui) && ui != null)
         {
             return ui as T;
+        }
+        // 만약 딕셔너리에 없다면 비활성화 된 오브젝트를 포함하여 씬에서 지연 검색
+        T foundUI = FindFirstObjectByType<T>(FindObjectsInactive.Include);
+        
+        if(foundUI != null)
+        {
+            RegisterLocalUI(foundUI);
+            return foundUI;
         }
         return null;
     }

@@ -3081,6 +3081,7 @@ GameObject:
   - component: {fileID: 1202160552376221680}
   - component: {fileID: 1912123714409756592}
   - component: {fileID: 5531123746832939369}
+  - component: {fileID: 9045024512704739328}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -3227,6 +3228,21 @@ MonoBehaviour:
   interactLayerMask:
     serializedVersion: 2
     m_Bits: 384
+--- !u!114 &9045024512704739328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8969247450876454081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cb6166bc33c94b4aa9de69f1ae98717, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatus
+  hpImage: {fileID: 0}
+  staminaImage: {fileID: 0}
+  stateMachine: {fileID: 2256740197408503247}
 --- !u!1 &8990269385663569382
 GameObject:
   m_ObjectHideFlags: 0

@@ -31,18 +31,13 @@ public class ContractBoardUI : MonoBehaviour
 
     private List<GameObject> spawnedItems = new List<GameObject>();
 
+    private Canvas boardCanvas;
     void Start()
     {
-        if(UIManager.Instance != null)
-        {
-            UIManager.Instance.RegisterLocalUI(this);
-        }
-
         if (closeButton != null)
         {
             closeButton.onClick.AddListener(CloseBoard);
         }
-        gameObject.SetActive(false); // 시작할 때는 UI를 꺼둡니다.
     }
     private void OnDestroy()
     {
