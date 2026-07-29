@@ -20,4 +20,4 @@ MonoBehaviour:
   companyType: 0
   baseValue: 2
   weight: 2
-  fieldPrefab: {fileID: 5528584602718164569, guid: 9e4d9087f211dc843b54924181dc4866, type: 3}
+  fieldPrefab: {fileID: 5870368787141594202, guid: 1b5a7e8012fc7ac4c92e8c513a1d215f, type: 3}

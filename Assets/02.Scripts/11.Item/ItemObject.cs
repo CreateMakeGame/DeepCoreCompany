@@ -26,7 +26,8 @@ public class ItemObject : MonoBehaviour, IInteractable
         if (itemData == null) return;
 
         // 싱글톤 인벤토리에 이 아이템 추가 요청
-        bool isSuccess = Inventory.Instance.AddItem(itemData);
+        //bool isSuccess = Inventory.Instance.AddItem(itemData);
+        bool isSuccess = QuickSlotUI.Instance.TryAddItem(itemData);
 
         if (isSuccess)
         {

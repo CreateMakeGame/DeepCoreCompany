@@ -172,6 +172,15 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""4084e1ef-bd32-4ce0-bfd2-13e2e1cc20ab"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -350,6 +359,17 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""QuickSlotScroll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""64d598af-e7aa-4975-9b31-7e443c7b9c51"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";PC"",
+                    ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -384,6 +404,7 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
         m_Player_Inventory = m_Player.FindAction("Inventory", throwIfNotFound: true);
         m_Player_QuickSlot = m_Player.FindAction("QuickSlot", throwIfNotFound: true);
         m_Player_QuickSlotScroll = m_Player.FindAction("QuickSlotScroll", throwIfNotFound: true);
+        m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
     }
 
     ~@Player_Actions()
@@ -473,6 +494,7 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Inventory;
     private readonly InputAction m_Player_QuickSlot;
     private readonly InputAction m_Player_QuickSlotScroll;
+    private readonly InputAction m_Player_Drop;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -520,6 +542,10 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/QuickSlotScroll".
         /// </summary>
         public InputAction @QuickSlotScroll => m_Wrapper.m_Player_QuickSlotScroll;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Drop".
+        /// </summary>
+        public InputAction @Drop => m_Wrapper.m_Player_Drop;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -573,6 +599,9 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
             @QuickSlotScroll.started += instance.OnQuickSlotScroll;
             @QuickSlotScroll.performed += instance.OnQuickSlotScroll;
             @QuickSlotScroll.canceled += instance.OnQuickSlotScroll;
+            @Drop.started += instance.OnDrop;
+            @Drop.performed += instance.OnDrop;
+            @Drop.canceled += instance.OnDrop;
         }
 
         /// <summary>
@@ -611,6 +640,9 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
             @QuickSlotScroll.started -= instance.OnQuickSlotScroll;
             @QuickSlotScroll.performed -= instance.OnQuickSlotScroll;
             @QuickSlotScroll.canceled -= instance.OnQuickSlotScroll;
+            @Drop.started -= instance.OnDrop;
+            @Drop.performed -= instance.OnDrop;
+            @Drop.canceled -= instance.OnDrop;
         }
 
         /// <summary>
@@ -727,5 +759,12 @@ public partial class @Player_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnQuickSlotScroll(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Drop" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDrop(InputAction.CallbackContext context);
     }
 }
