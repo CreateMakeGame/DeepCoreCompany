@@ -9,8 +9,10 @@ public class UIManager : MonoBehaviour
     [Header("Global UI Prefab (런타임에 소환할 프리팹)")]
     [SerializeField] private GameObject globalUIRootPrefab;
     private GameObject globalUIRootInstance;
+
     public GameObject InventoryUI { get; private set; }
     public InteractableUI InteractableUI { get; private set; }
+    public GameObject MainHUDPanel { get; private set; }
 
     // 현재 씬에 존재하는 로컬 UI들을 타입별로 안전하게 보관할 딕셔너리
     private Dictionary<System.Type, MonoBehaviour> localUIs = new Dictionary<System.Type, MonoBehaviour>();
@@ -31,19 +33,20 @@ public class UIManager : MonoBehaviour
         // 구독 해제
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
     private void InitGlobalUIRoot()
     {
         if (globalUIRootPrefab != null)
         {
 
-            GameObject globalUIRoot = Instantiate(globalUIRootPrefab);
-            globalUIRoot.name = "GlobalUIRoot";
+            globalUIRootInstance = Instantiate(globalUIRootPrefab);
+            globalUIRootInstance.name = "GlobalUIRoot";
 
-            globalUIRoot.transform.SetParent(null); // 최상위로 설정
-            DontDestroyOnLoad(globalUIRoot);
+            globalUIRootInstance.transform.SetParent(null); // 최상위로 설정
+            DontDestroyOnLoad(globalUIRootInstance);
 
             // 글로벌 UI 요소들을 프리팹에서 찾아서 참조로 저장
-            PrefabReference(globalUIRoot);
+            PrefabReference(globalUIRootInstance);
 
             // 필요한 경우, 글로벌 UI 요소들을 초기 상태로 설정
             if (InventoryUI != null) InventoryUI.SetActive(false);
@@ -84,11 +87,32 @@ public class UIManager : MonoBehaviour
 
     private void PrefabReference(GameObject globalUIRoot)
     {
-        Transform invTransform = globalUIRoot.transform.Find("GlobalScreenCanvas/InventoryUI");
-        if (invTransform != null) InventoryUI = invTransform.gameObject;
+        // 문자열 경로 대신 컴포넌트 타입으로 안전하게 자식 탐색 (비활성화 상태 포함)
+        InteractableUI = globalUIRoot.GetComponentInChildren<InteractableUI>(true);
 
-        Transform interTransform = globalUIRoot.transform.Find("GlobalHUDCanvas/InteractableUI");
-        if (interTransform != null) InteractableUI = interTransform.GetComponent<InteractableUI>();
+        foreach (Transform child in globalUIRoot.GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == "MainHUDPanel")
+            {
+                MainHUDPanel = child.gameObject;
+                break;
+            }
+        }
+        //// InventoryUI는 컴포넌트가 따로 없다면 이름으로 찾되 안전하게 검색
+        //Transform invTransform = globalUIRoot.transform.Find("GlobalScreenCanvas/InventoryUI");
+        //if (invTransform == null)
+        //{
+        //    // 혹시 Canvas 이름이 변경되었을 경우를 대비한 유연한 탐색
+        //    foreach (Transform child in globalUIRoot.GetComponentsInChildren<Transform>(true))
+        //    {
+        //        if (child.name == "InventoryUI")
+        //        {
+        //            invTransform = child;
+        //            break;
+        //        }
+        //    }
+        //}
+        //if (invTransform != null) InventoryUI = invTransform.gameObject;
     }
 
     #region 로컬 UI 동적 등록 시스템
@@ -132,6 +156,14 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region UI 열기/닫기 및 마우스 커서 제어
+    public void SetActiveHUD(bool isActive)
+    {
+        if (globalUIRootInstance != null)
+        {
+            globalUIRootInstance.SetActive(isActive);
+        }
+    }
+
     public void OpenUI(GameObject uiPanel)
     {
         if (uiPanel == null || uiPanel.activeSelf) return;
@@ -150,7 +182,10 @@ public class UIManager : MonoBehaviour
 
     private void RefreshCursorState()
     {
-        if (openUIStack.Count > 0)
+        bool isAnyPopupOpen = openUIStack.Count > 0;
+
+        // 마우스 커서 상태를 UI 열림 여부에 따라 조정
+        if (isAnyPopupOpen)
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -159,6 +194,13 @@ public class UIManager : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+        if(MainHUDPanel != null) MainHUDPanel.SetActive(!isAnyPopupOpen);
+
+        // 팝업 창이 열릴 때 상호작용 프롬프트(InteractableUI)도 숨기고 싶다면 주석 해제
+         if (InteractableUI != null)
+        {
+            InteractableUI.gameObject.SetActive(!isAnyPopupOpen);
         }
     }
     #endregion

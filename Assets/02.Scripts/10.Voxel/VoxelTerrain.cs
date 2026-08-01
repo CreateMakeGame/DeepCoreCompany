@@ -6,7 +6,21 @@ public enum VoxelType
     Air,
     Dirt,
     Iron,
+    Gold,
     Artifact,
+    Sample,
+    Hazardous,
+}
+
+[System.Serializable]
+public struct ItemSpawnData
+{
+    public ItemData itemData;           // 생성할 ScriptableObject 아이템 데이터
+    public VoxelType voxelType;         // 해당 아이템이 매립될 복셀 타입
+    [Range(0f, 1f)]
+    public float spawnChance;           // 스폰 확률 (0 ~ 1)
+    public int minHeight;               // 생성 최소 높이
+    public int maxHeight;               // 생성 최대 높이
 }
 
 [ExecuteAlways] // 에디터에서도 실행되도록 설정
@@ -19,14 +33,25 @@ public class VoxelTerrain : MonoBehaviour
     public int depth = 20;              // Z축 길이 (세로)
     public float surfaceLevel = 0.5f;   // 땅과 공기를 구분하는 기준값 (0.5보다 크면 땅)
 
-    [Header("Mineral Settings")]
-    [SerializeField] private GameObject ironPrefab;     // 철 광물 프리팹
-    [SerializeField][Range(0f, 1f)] private float ironChance = 0.05f; // 철광석이 매립될 확률 (5%)
-    [SerializeField] private int ironMaxHeight = 5;
+    [Header("Cave Settings (동굴 설정)")]
+    public bool enableCaves = true;      // 동굴 생성 여부
+    [Range(0.01f, 0.2f)]
+    public float caveScale = 0.08f;      // 동굴 터널 크기/주기
+    [Range(0f, 1f)]
+    public float caveThreshold = 0.52f;  // 동굴 빈 공간 비율
+    public int caveMaxHeight = 15;       // 동굴이 생성될 최대 높이
+
+    [Header("Dig Boundary Settings")]
+    public bool useDigBounds = true;    // 굴착 제한 적용 여부
+    public Vector3 digZoneOffset = Vector3.zero; // 굴착 제한 영역의 오프셋
+    public Vector3 digZoneSize = new Vector3(10f, 20f, 10f); // 굴착 가능 영역 크기 (X: 가로, Y: 깊이, Z: 세로)
 
 
-    private float[,,] densities;            // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
-    private VoxelType[,,] voxelTypes;        // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
+    [Header("Item Spawn Settings")]
+    [SerializeField] private List<ItemSpawnData> itemSpawnList = new List<ItemSpawnData>();
+
+    private float[,,] densities;                            // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
+    private VoxelType[,,] voxelTypes;                       // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
     private List<Vector3> vertices = new List<Vector3>();   // 만들어질 메쉬의 꼭짓점들
     private List<int> triangles = new List<int>();          // 꼭짓점을 이어붙일 삼각형의 순서
 
@@ -34,18 +59,16 @@ public class VoxelTerrain : MonoBehaviour
     private MeshCollider meshCollider;
     private Mesh mesh;
 
-    
-
     void OnEnable()
     {
         InitializeComponents();
-        GenerateTerrain(); // 시작하자마자 한 번 지형을 생성합니다
+        GenerateTerrain();      // 시작하자마자 한 번 지형을 생성합니다
     }
 
-    // 유니티 에디터(Inspector)에서 width, height 등의 숫자를 바꿀 때마다 자동으로 실행되는 함수입니다.
+    // 유니티 에디터(Inspector)에서 width, height 등의 숫자를 바꿀 때마다 자동으로 실행되는 함수
     void OnValidate()
     {
-        // 씬이 로딩 중일 때는 에러가 날 수 있으니 가볍게 무시해줍니다.
+        // 씬이 로딩 중일 때는 에러가 날 수 있으니 가볍게 무시
         if (gameObject.activeInHierarchy)
         {
             InitializeComponents();
@@ -55,9 +78,9 @@ public class VoxelTerrain : MonoBehaviour
 
     private void InitializeComponents()
     {
-        if(meshFilter == null) meshFilter = GetComponent<MeshFilter>();
-        if(meshCollider == null) meshCollider = GetComponent<MeshCollider>();
-        if(mesh == null)
+        if (meshFilter == null) meshFilter = GetComponent<MeshFilter>();
+        if (meshCollider == null) meshCollider = GetComponent<MeshCollider>();
+        if (mesh == null)
         {
             mesh = new Mesh();
             mesh.name = "Voxel Terrain Mesh";
@@ -69,7 +92,7 @@ public class VoxelTerrain : MonoBehaviour
     private void GenerateTerrain()
     {
         GenerateDensities(); // 1. 공간의 밀도(노이즈) 결정
-        MarchAllCubes();     // 2. 밀도에 따라 삼각형 생성 (Marching Cubes 알고리즘)
+        MarchAllCubes();     // 2. 부드러운 보간을 적용해 삼각형 생성
         UpdateMesh();        // 3. 실제 메쉬와 충돌체에 적용
     }
 
@@ -84,34 +107,79 @@ public class VoxelTerrain : MonoBehaviour
         {
             for (int z = 0; z <= depth; z++)
             {
-                // PerlinNoise를 이용해 자연스러운 굴곡(언덕)을 만듭니다.
+                // PerlinNoise로 표면 높이 계산
                 float surfaceHeight = Mathf.PerlinNoise(x * 0.1f, z * 0.1f) * (height * 0.5f) + (height * 0.2f);
 
                 for (int y = 0; y <= height; y++)
                 {
-                    if( y < surfaceHeight)
-                    {
-                        densities[x, y, z] = 1f;
+                    float density = surfaceHeight - y + surfaceLevel;
+                    bool isCave = false;
 
-                        // 땅으로 간주되는 점에 대해 VoxelType을 결정합니다.
-                        if (y < ironMaxHeight && Random.value < ironChance)
+                    // 3D Noise 기반 동굴 처리
+                    if (enableCaves && y < caveMaxHeight && y < surfaceHeight - 2)
+                    {
+                        float caveNoise = Get3DNoise(x, y, z, caveScale);
+                        if (caveNoise > caveThreshold)
                         {
-                            voxelTypes[x, y, z] = VoxelType.Iron; // 철광석
-                        }
-                        else
-                        {
-                            voxelTypes[x, y, z] = VoxelType.Dirt; // 일반 흙
+                            isCave = true;
                         }
                     }
-                    else
+
+                    if (isCave)
                     {
                         densities[x, y, z] = 0f;
                         voxelTypes[x, y, z] = VoxelType.Air;
                     }
-                    
+                    else
+                    {
+                        densities[x, y, z] = Mathf.Clamp(density, -1f, 2f);
+
+                        if (densities[x, y, z] > surfaceLevel)
+                        {
+                            // ItemSpawnData 리스트 기반으로 스폰될 VoxelType 결정
+                            voxelTypes[x, y, z] = DetermineVoxelType(y, surfaceHeight);
+                        }
+                        else
+                        {
+                            voxelTypes[x, y, z] = VoxelType.Air;
+                        }
+                    }
                 }
             }
         }
+    }
+    // 높이에 맞는 ItemData 기반의 VoxelType 결정
+    private VoxelType DetermineVoxelType(int y, float surfaceHeight)
+    {
+        foreach (var spawnData in itemSpawnList)
+        {
+            if (spawnData.itemData == null) continue;
+
+            // 표면(surfaceHeight) 바로 아래 ~ 5칸 아래 사이에 매립되도록 설정
+            float depthFromSurface = surfaceHeight - y;
+
+            if (depthFromSurface >= spawnData.minHeight && depthFromSurface <= spawnData.maxHeight)
+            {
+                if (Random.value < spawnData.spawnChance)
+                {
+                    return spawnData.voxelType;
+                }
+            }
+        }
+        return VoxelType.Dirt; // 기본적으로 흙으로 설정
+    }
+
+    private float Get3DNoise(float x, float y, float z, float scale)
+    {
+        float xy = Mathf.PerlinNoise(x * scale, y * scale);
+        float yz = Mathf.PerlinNoise(y * scale, z * scale);
+        float zx = Mathf.PerlinNoise(z * scale, x * scale);
+
+        float yx = Mathf.PerlinNoise(y * scale, x * scale);
+        float zy = Mathf.PerlinNoise(z * scale, y * scale);
+        float xz = Mathf.PerlinNoise(x * scale, z * scale);
+
+        return (xy + yz + zx + yx + zy + xz) / 6f;
     }
 
     // 플레이어의 DigState에서 호출되는 함수
@@ -126,6 +194,8 @@ public class VoxelTerrain : MonoBehaviour
         int centerZ = Mathf.RoundToInt(worldPos.z - transform.position.z + offset.z);
         int r = Mathf.CeilToInt(radius);
 
+        Bounds digZone = new Bounds(transform.position + digZoneOffset, digZoneSize);
+
         // 구형(Sphere) 형태로 밀도 맵 파내기
         for (int x = centerX - r; x <= centerX + r; x++)
         {
@@ -136,35 +206,55 @@ public class VoxelTerrain : MonoBehaviour
                     // 배열 범위를 벗어나지 않도록 안전 검사
                     if (x >= 0 && x <= width && y >= 0 && y <= height && z >= 0 && z <= depth)
                     {
+                        Vector3 voxelWorldPos = new Vector3(x, y, z) + transform.position - offset;
+                        if (useDigBounds && !digZone.Contains(voxelWorldPos))
+                        {
+                            continue; // 굴착 제한 영역 밖이면 패스
+                        }
+
                         float dist = Vector3.Distance(new Vector3(x, y, z), new Vector3(centerX, centerY, centerZ));
                         if (dist <= radius)
                         {
                             // 아직 파괴되지 않은 땅(밀도 > surfaceLevel)이었는지 확인
                             if (densities[x, y, z] > surfaceLevel)
                             {
-                                // 그 자리가 철광석 데이터였다면 프리팹 생성!
-                                if (voxelTypes[x, y, z] == VoxelType.Iron && ironPrefab != null)
-                                {
-                                    // 인덱스 좌표를 다시 유니티 월드 좌표로 역변환
-                                    Vector3 spawnPos = new Vector3(x, y, z) + transform.position - offset;
-                                    Instantiate(ironPrefab, spawnPos, Quaternion.identity);
-                                }
-
+                                // 땅을 파냈을 때 연결된 ItemData의 fieldPrefab 스폰
+                                SpawnItemIfExist(voxelTypes[x, y, z], new Vector3(x, y, z) + transform.position - offset);
                                 // 파내졌으므로 물질 상태를 공기(Air)로 변경
                                 voxelTypes[x, y, z] = VoxelType.Air;
                             }
-
                             densities[x, y, z] = 0f;
                         }
                     }
                 }
             }
         }
-
         // 밀도가 변경되었으니 메쉬를 다시 계산하고 업데이트
         MarchAllCubes();
         UpdateMesh();
     }
+
+    private void SpawnItemIfExist(VoxelType voxelType, Vector3 spawnPosition)
+    {
+        if (voxelType == VoxelType.Dirt || voxelType == VoxelType.Air) return;
+        ItemSpawnData spawnData = itemSpawnList.Find(s => s.voxelType == voxelType);
+
+        // ItemData와 그 안의 fieldPrefab이 할당되어 있는지 확인 후 스폰
+        if (spawnData.itemData != null && spawnData.itemData.fieldPrefab != null)
+        {
+            GameObject spawnedObj = Instantiate(spawnData.itemData.fieldPrefab, spawnPosition, Quaternion.identity);
+
+            // [참고] 만약 생성된 필드 아이템에 ItemData 정보(가치, 무게 등)를 넘겨주는 스크립트(예: FieldItem)가 붙어있다면 
+            // 아래처럼 넘겨줄 수 있습니다.
+            /*
+            if (spawnedObj.TryGetComponent<FieldItemHolder>(out var holder))
+            {
+                holder.itemData = spawnData.itemData;
+            }
+            */
+        }
+    }
+
     // 밀도 배열을 전체적으로 훑으면서 어디에 면(삼각형)을 만들지 결정합니다.
     private void MarchAllCubes()
     {
@@ -227,11 +317,32 @@ public class VoxelTerrain : MonoBehaviour
 
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f); // 월드 중심을 기준으로 좌표를 조정하기 위한 오프셋
 
-        Vector3 pos0 = new Vector3(x, y, z) + MarchingTables.CornerOffsets[v0] - offset;
-        Vector3 pos1 = new Vector3(x, y, z) + MarchingTables.CornerOffsets[v1] - offset;
+        Vector3 corner0 = new Vector3(x, y, z) + MarchingTables.CornerOffsets[v0];
+        Vector3 corner1 = new Vector3(x, y, z) + MarchingTables.CornerOffsets[v1];
 
-        return (pos0 + pos1) / 2f;
+        float val0 = densities[(int)corner0.x, (int)corner0.y, (int)corner0.z];
+        float val1 = densities[(int)corner1.x, (int)corner1.y, (int)corner1.z];
+
+        Vector3 pos0 = corner0 - offset;
+        Vector3 pos1 = corner1 - offset;
+
+        return GetInterpolatedEdge(pos0, pos1, val0, val1, surfaceLevel);
     }
+
+
+    private Vector3 GetInterpolatedEdge(Vector3 p1, Vector3 p2, float val1, float val2, float surfaceLevel)
+    {
+        // 0으로 나누어지는 오차 방지 및 예외 처리
+        if (Mathf.Abs(surfaceLevel - val1) < 0.00001f) return p1;
+        if (Mathf.Abs(surfaceLevel - val2) < 0.00001f) return p2;
+        if (Mathf.Abs(val1 - val2) < 0.00001f) return p1;
+
+        // 선형 보간 함수 작성
+        float t = (surfaceLevel - val1) / (val2 - val1);
+
+        return Vector3.Lerp(p1, p2, t);
+    }
+
 
     // 계산된 꼭짓점과 삼각형 데이터를 실제 Unity Mesh에 밀어 넣습니다.
     private void UpdateMesh()
@@ -249,9 +360,17 @@ public class VoxelTerrain : MonoBehaviour
         }
     }
 
-
     private void OnDrawGizmosSelected()
     {
+        // 굴착 가능 제한 영역을 에디터 상에 표시 (녹색 박스)
+        if (useDigBounds)
+        {
+            Gizmos.color = new Color(0f, 1f, 0f, 0.2f); // 투명한 녹색
+            Gizmos.DrawCube(transform.position + digZoneOffset, digZoneSize);
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(transform.position + digZoneOffset, digZoneSize);
+        }
+
         // 게임이 실행 중이지 않거나 배열이 생성되지 않았다면 패스
         if (voxelTypes == null) return;
 
@@ -279,5 +398,17 @@ public class VoxelTerrain : MonoBehaviour
                 }
             }
         }
+    }
+    private Color GetGizmoColor(VoxelType type)
+    {
+        return type switch
+        {
+            VoxelType.Iron => Color.gray,
+            VoxelType.Gold => Color.yellow,
+            VoxelType.Artifact => Color.cyan,
+            VoxelType.Sample => Color.magenta,
+            VoxelType.Hazardous => Color.red,
+            _ => Color.white,
+        };
     }
 }
