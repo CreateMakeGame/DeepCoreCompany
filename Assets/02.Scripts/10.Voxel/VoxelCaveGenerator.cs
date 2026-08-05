@@ -60,18 +60,18 @@ public class VoxelCaveGenerator : MonoBehaviour
         int currentSeed = useRandomSeed ? Random.Range(-999999, 999999) : seed;
         Random.InitState(currentSeed);
 
-        noiseOffsetA = new Vector3(Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f));
-        noiseOffsetB = new Vector3(Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f));
-        noiseOffsetC = new Vector3(Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f));
+        noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        noiseOffsetC = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
     }
 
     private void UpdateEditorOffsets()
     {
         Random.InitState(seed);
 
-        noiseOffsetA = new Vector3(Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f));
-        noiseOffsetB = new Vector3(Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f));
-        noiseOffsetC = new Vector3(Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f), Random.Range(-99999f, 99999f));
+        noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        noiseOffsetC = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
     }
     public void ApplyCaves(float[,,] densities, VoxelType[,,] voxelTypes,
         int width, int height, int depth, VoxelSurfaceGenerator surfaceGen)
