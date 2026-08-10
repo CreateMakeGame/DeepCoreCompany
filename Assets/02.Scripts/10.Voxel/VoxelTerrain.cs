@@ -8,35 +8,37 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class VoxelTerrain : MonoBehaviour
 {
+    [Header("Soil Layer Settings (토양 층위 설정)")]
+    public Gradient soilGradient;           // 토양 색상을 편집할 그라데이션
+    public float maxDepth = 30f;            // 토양 층위의 최대 깊이 (이 깊이까지는 토양 색상을 적용)
+
     [Header("Grid Settings")]
-    public int width = 100;               // X축 길이 (가로)
-    public int height = 100;             // Y축 전체 높이 공간
-    public int depth = 100;               // Z축 길이 (세로)
-    public float surfaceLevel = 0.5f;    // 땅과 공기를 구분하는 기준값
+    public int width = 100;                 // X축 길이 (가로)
+    public int height = 100;                // Y축 전체 높이 공간
+    public int depth = 100;                 // Z축 길이 (세로)
+    public float surfaceLevel = 0.5f;       // 땅과 공기를 구분하는 기준값
    
     [Header("Dig Boundary Settings")]
     public bool useDigBounds = true;     // 굴착 제한 적용 여부
     public Vector3 digZoneOffset = Vector3.zero; // 굴착 제한 영역의 오프셋
     public Vector3 digZoneSize = new Vector3(10f, 20f, 10f); // 굴착 가능 영역 크기
 
-    //[Header("Item Spawn Settings")]
-    //[SerializeField] private List<ItemSpawnData> itemSpawnList = new List<ItemSpawnData>();
-
-
     private float[,,] densities;                            // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
     private VoxelType[,,] voxelTypes;                       // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
 
     private List<Vector3> vertices = new List<Vector3>();   // 만들어질 메쉬의 꼭짓점들
+    private List<Color> colors = new List<Color>();         //  버텍스 색상 리스트
     private List<int> triangles = new List<int>();          // 꼭짓점을 이어붙일 삼각형의 순서
+
     private Dictionary<Vector3, int> vertexIndexMap = new Dictionary<Vector3, int>();   // 동일한 위치의 버텍스를 재사용하기 위한 맵
     
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
     private Mesh mesh;
 
-    [SerializeField] private VoxelSurfaceGenerator surfaceGen;
-    [SerializeField] private VoxelCaveGenerator caveGen;
-    [SerializeField] private VoxelItemGenerator itemGen;
+    [SerializeField] private VoxelSurfaceGenerator surfaceGen;      // 지형 표면 생성기
+    [SerializeField] private VoxelCaveGenerator caveGen;            // 동굴 생성기
+    [SerializeField] private VoxelItemGenerator itemGen;            // 매장 아이템 생성기
 
     void OnEnable()
     {
@@ -185,6 +187,7 @@ public class VoxelTerrain : MonoBehaviour
     private void MarchAllCubes()
     {
         vertices.Clear();
+        colors.Clear();
         triangles.Clear();
         vertexIndexMap.Clear();
 
@@ -247,6 +250,21 @@ public class VoxelTerrain : MonoBehaviour
         {
             int newindex = vertices.Count;
             vertices.Add(roundePos);
+
+            Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
+            // 버텍스 색상 계산 (토양 색상 그라데이션 적용)
+            float gridX = roundePos.x + offset.x;
+            float gridY = roundePos.y + offset.y;
+            float gridZ = roundePos.z + offset.z;
+
+            float surfaceY = surfaceGen != null ? surfaceGen.GetSurfaceHeight(gridX, gridZ) : height;
+            float depthFromSurface = Mathf.Max(0f, surfaceY - gridY);
+            float normalizedDepth = Mathf.Clamp01(depthFromSurface / maxDepth);
+
+            // soilGradient이 null이 아닌 경우에만 Evaluate를 호출하고, null이면 기본 색상(Color.white)을 사용
+            Color vertColor = (soilGradient != null) ? soilGradient.Evaluate(normalizedDepth) : Color.white;
+            colors.Add(vertColor);
+
             vertexIndexMap.Add(roundePos, newindex);
             triangles.Add(newindex);
         }
@@ -292,6 +310,7 @@ public class VoxelTerrain : MonoBehaviour
         mesh.Clear();
         mesh.indexFormat = IndexFormat.UInt32;  // 꼭짓점이 많을 경우를 대비해 32비트 인덱스 사용
         mesh.vertices = vertices.ToArray();
+        mesh.colors = colors.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.RecalculateNormals(); // 조명 효과를 위한 노말 계산
 
@@ -302,6 +321,7 @@ public class VoxelTerrain : MonoBehaviour
             meshCollider.sharedMesh = mesh;
         }
     }
+
 
     private void OnDrawGizmosSelected()
     {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -40,7 +41,15 @@ public class VoxelCaveGenerator : MonoBehaviour
     [Header("Boundary Fade Settings (경계선 부드러운 감쇄)")]
     [Tooltip("경계선에 도달하기 전 동굴이 자연스럽게 막히도록 하는 마감 거리")]
     [Range(1f, 15f)] public float boundaryFadeDistance = 6f;
-        
+
+    [Header("Structure & Artifact Settings (유적 및 구조물 설정)")]
+    public GameObject[] artifactPrefabs;      // 방에 생성할 유물/유적 프리팹 목록
+    [Range(0f, 1f)] public float artifactSpawnChance = 0.7f; // 방마다 유물이 생성될 확률
+    public LayerMask terrainLayer;            // 지형 레이어 (Raycast 바닥 검출용)
+
+    // 생성된 방들의 중심 좌표 저장 리스트
+    private List<Vector3> chamberCenters = new List<Vector3>();
+
     private void OnValidate()
     {
         if (gameObject.activeInHierarchy)
@@ -77,6 +86,8 @@ public class VoxelCaveGenerator : MonoBehaviour
         int width, int height, int depth, VoxelSurfaceGenerator surfaceGen)
     {
         if (!enableCaves) return;
+        
+        chamberCenters.Clear(); // 이전에 생성된 방 중심 좌표 초기화
 
         for (int x = caveMarginX; x <= width - caveMarginX; x++)
         {
@@ -89,10 +100,7 @@ public class VoxelCaveGenerator : MonoBehaviour
                     // 각 축의 경계선까지 남은 거리 계산 (동굴 생성 범위 제한)
                     float distX = Mathf.Min(x - caveMarginX, (width - caveMarginX) - x);
                     float distZ = Mathf.Min(z - caveMarginZ, (depth - caveMarginZ) - z);
-
-                    float distYMin = y - caveMinHeight;
-                    float distYMax = (surfaceHeight - caveSurfaceMargin) - y;
-                    float distY = Mathf.Min(distYMin, distYMax);
+                    float distY = Mathf.Min(y - caveMinHeight, (surfaceHeight - caveSurfaceMargin) - y);
 
                     if (distX < 0 || distZ < 0 || distY < 0) continue;
 
@@ -107,13 +115,12 @@ public class VoxelCaveGenerator : MonoBehaviour
                     float n2 = Get3DNoise(x + noiseOffsetB.x, y + noiseOffsetB.y, z + noiseOffsetB.z, caveScale);
 
                     // 두 노이즈의 중심축(0.5)으로부터의 거리 계산
-                    float d1 = n1 - 0.5f;
-                    float d2 = n2 - 0.5f;
-                    float tunnelDist = Mathf.Sqrt(d1 * d1 + d2 * d2);
+                    float d1 = Mathf.Pow(n1 - 0.5f, 2);
+                    float d2 = Mathf.Pow(n2 - 0.5f, 2);
+                    float tunnelDist = Mathf.Sqrt(d1 + d2);
 
                     // 넓은 방 생성용 저주파 노이즈 연산
                     float chamberNoise = Get3DNoise(x + noiseOffsetC.x, y + noiseOffsetC.y, z + noiseOffsetC.z, chamberScale);
-
                     // 기본 통로 굵기로 시작
                     float currentRadius = tunnelRadius;
 
@@ -121,14 +128,26 @@ public class VoxelCaveGenerator : MonoBehaviour
                     {
                         float chamberFactor = (chamberNoise - chamberThreshold) / (1f - chamberThreshold);
                         chamberFactor = Mathf.SmoothStep(0f, 1f, chamberFactor);
+                        // 통로 반지름을 방 크기로 확장하는 핵심 코드 추가
                         currentRadius = Mathf.Lerp(tunnelRadius, maxChamberRadius, chamberFactor);
+
+                        Vector3 currentPos = new Vector3(x, y, z);
+                        if (chamberNoise > chamberThreshold + 0.08f && IsFarFromOtherChambers(currentPos, 12f))
+                        {
+                            chamberCenters.Add(currentPos);
+                        }
                     }
 
-                    // 동굴 굴착 처리
+                    // 동굴 굴착 및 바닥 평탄화 가공
                     if (tunnelDist < currentRadius)
                     {
-                        float carveFactor = (1f - (tunnelDist / currentRadius)) * boundaryFade;
-                        carveFactor = Mathf.SmoothStep(0f, 1f, carveFactor);
+                        float carveFactor = Mathf.SmoothStep(0f, 1f, (1f - (tunnelDist / currentRadius)) * boundaryFade);
+
+                        // 방 구역일 경우 아래쪽 바닥을 좀 더 평평하게 깎아냄
+                        if (chamberNoise > chamberThreshold && y < caveMaxHeight)
+                        {
+                            carveFactor = Mathf.Pow(carveFactor, 0.7f);
+                        }
 
                         densities[x, y, z] = Mathf.Lerp(densities[x, y, z], -1.0f, carveFactor);
 
@@ -139,6 +158,54 @@ public class VoxelCaveGenerator : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+    // 방 중심점끼리 너무 가깝게 붙지 않도록 거리를 검사하는 함수
+    private bool IsFarFromOtherChambers(Vector3 position, float minDistance)
+    {
+        foreach (var center in chamberCenters)
+        {
+            if (Vector3.Distance(center, position) < minDistance)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 메쉬 생성이 끝난 후 호출하여 유물을 배치하는 함수
+    public void SpawnArtifactsInChambers()
+    {
+        ClearArtifacts(); // 기존 생성된 유물 제거
+
+        if (artifactPrefabs == null || artifactPrefabs.Length == 0) return;
+
+        foreach (Vector3 chamberPos in chamberCenters)
+        {
+            if (Random.value > artifactSpawnChance) continue;
+
+            // 방 중심에서 아래쪽으로 레이를 쏘아 단단한 바닥 지면 탐색
+            if (Physics.Raycast(chamberPos, Vector3.down, out RaycastHit hit, 15f, terrainLayer))
+            {
+                GameObject selectedArtifact = artifactPrefabs[Random.Range(0, artifactPrefabs.Length)];
+
+                // 바닥 위치에 유물 생성 및 무작위 회전 부여
+                Quaternion randomRotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+                Instantiate(selectedArtifact, hit.point, randomRotation, transform);
+            }
+        }
+    }
+
+    // 지형 재생성 시 유물이 중복 스폰되는 현상 방지
+    private void ClearArtifacts()
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = transform.GetChild(i);
+            if (Application.isPlaying)
+                Destroy(child.gameObject);
+            else
+                DestroyImmediate(child.gameObject);
         }
     }
 

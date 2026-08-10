@@ -56,7 +56,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
             }
         }
     }
-    public float GetSurfaceHeight(int x, int z)
+    public float GetSurfaceHeight(float x, float z)
     {
         return baseTerrainHeight + Mathf.PerlinNoise(x * terrainScale, z * terrainScale) * mountainHeight;
     }
