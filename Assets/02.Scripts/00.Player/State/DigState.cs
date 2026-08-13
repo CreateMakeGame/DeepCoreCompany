@@ -10,6 +10,9 @@ public class DigState : IState
     private bool hasDug;    // 한 번만 파게 하기 위한 플래그
     private float digTime;  // 땅이 파이는 시점 기록
 
+    private LayerMask targetLayer = LayerMask.GetMask("Plant");
+    private float digRadius = 2.0f; // 굴착 반지름
+
     public DigState(PlayerStateMachine sm) => stateMachine = sm;
 
     public void Enter()
@@ -41,7 +44,17 @@ public class DigState : IState
             if (terrain != null)
             {
                 Vector3 digPos = stateMachine.CurrerntDigTarget; // 굴착 목표 위치 (상태 간 공유용)
-                terrain.Dig(digPos, 1.0f); // 반지름 1로 파기
+                terrain.Dig(digPos, digRadius); // 반지름 1로 파기]
+
+                Collider[] hitColliders = Physics.OverlapSphere(digPos, digRadius, targetLayer);
+                foreach (var col in hitColliders)
+                {
+                    // VoxelTerrain 지형 메쉬 자체는 파괴되면 안 되므로 스킵
+                    if (col.GetComponent<VoxelTerrain>() != null) continue;
+
+                    // 풀/꽃/바위 등 오브젝트 파괴
+                    Object.Destroy(col.gameObject);
+                }
             }
         }
 

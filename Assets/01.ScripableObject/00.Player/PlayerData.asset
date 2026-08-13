@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c1f79ab7130ee248a3ad0508ef52b22, type: 3}
   m_Name: PlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
+  maxHp: 100
+  maxStamina: 100
+  staminaDrainRate: 20
+  staminaRegenRate: 10
+  regenDelay: 2
   baseSpeed: 3
   runSpeed: 5
   jumpHeight: 1.5
@@ -24,4 +29,4 @@ MonoBehaviour:
   baseDigDuration: 1
   digSpeedMultiplier: 1
   digCooldown: 1
-  digRange: 2
+  digRange: 3
