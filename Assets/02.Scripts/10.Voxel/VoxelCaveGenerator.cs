@@ -42,26 +42,27 @@ public class VoxelCaveGenerator : MonoBehaviour
     [Tooltip("경계선에 도달하기 전 동굴이 자연스럽게 막히도록 하는 마감 거리")]
     [Range(1f, 15f)] public float boundaryFadeDistance = 6f;
 
-    [Header("Structure & Artifact Settings (유적 및 구조물 설정)")]
-    public GameObject[] artifactPrefabs;      // 방에 생성할 유물/유적 프리팹 목록
-    [Range(0f, 1f)] public float artifactSpawnChance = 0.7f; // 방마다 유물이 생성될 확률
-    public LayerMask terrainLayer;            // 지형 레이어 (Raycast 바닥 검출용)
-
-    // 생성된 방들의 중심 좌표 저장 리스트
-    private List<Vector3> chamberCenters = new List<Vector3>();
+    // int 타입 좌표 리스트로 변경하여 복셀 인덱스 관리를 명확히 함
+    private List<Vector3Int> chamberCenters = new List<Vector3Int>();
+    public List<Vector3Int> GetChamberCenters() => chamberCenters;
 
     private void OnValidate()
     {
-        if (gameObject.activeInHierarchy)
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () =>
         {
-            UpdateEditorOffsets();
-            GetComponent<VoxelTerrain>()?.GenerateTerrain();
-        }
+            if (this != null && gameObject.activeInHierarchy)
+            {
+                GetComponent<VoxelTerrain>()?.GenerateTerrain();
+            }
+        };
+#endif
     }
 
     private void Start()
     {
         InitializeOffsets();
+        UpdateEditorOffsets();
     }
 
     public void InitializeOffsets()
@@ -82,11 +83,18 @@ public class VoxelCaveGenerator : MonoBehaviour
         noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
         noiseOffsetC = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
     }
+
     public void ApplyCaves(float[,,] densities, VoxelType[,,] voxelTypes,
         int width, int height, int depth, VoxelSurfaceGenerator surfaceGen)
     {
         if (!enableCaves) return;
-        
+
+        if (noiseOffsetA == Vector3.zero && noiseOffsetB == Vector3.zero)
+        {
+            if (Application.isPlaying) InitializeOffsets();
+            else UpdateEditorOffsets();
+        }
+
         chamberCenters.Clear(); // 이전에 생성된 방 중심 좌표 초기화
 
         for (int x = caveMarginX; x <= width - caveMarginX; x++)
@@ -131,8 +139,8 @@ public class VoxelCaveGenerator : MonoBehaviour
                         // 통로 반지름을 방 크기로 확장하는 핵심 코드 추가
                         currentRadius = Mathf.Lerp(tunnelRadius, maxChamberRadius, chamberFactor);
 
-                        Vector3 currentPos = new Vector3(x, y, z);
-                        if (chamberNoise > chamberThreshold + 0.08f && IsFarFromOtherChambers(currentPos, 12f))
+                        Vector3Int currentPos = new Vector3Int(x, y, z);
+                        if (chamberNoise > chamberThreshold + 0.02f && IsFarFromOtherChambers(currentPos, 12f))
                         {
                             chamberCenters.Add(currentPos);
                         }
@@ -159,7 +167,9 @@ public class VoxelCaveGenerator : MonoBehaviour
                 }
             }
         }
+        //Debug.Log($"[VoxelCaveGenerator] 생성된 방(Chamber) 개수: {chamberCenters.Count}");
     }
+
     // 방 중심점끼리 너무 가깝게 붙지 않도록 거리를 검사하는 함수
     private bool IsFarFromOtherChambers(Vector3 position, float minDistance)
     {
@@ -171,42 +181,6 @@ public class VoxelCaveGenerator : MonoBehaviour
             }
         }
         return true;
-    }
-
-    // 메쉬 생성이 끝난 후 호출하여 유물을 배치하는 함수
-    public void SpawnArtifactsInChambers()
-    {
-        ClearArtifacts(); // 기존 생성된 유물 제거
-
-        if (artifactPrefabs == null || artifactPrefabs.Length == 0) return;
-
-        foreach (Vector3 chamberPos in chamberCenters)
-        {
-            if (Random.value > artifactSpawnChance) continue;
-
-            // 방 중심에서 아래쪽으로 레이를 쏘아 단단한 바닥 지면 탐색
-            if (Physics.Raycast(chamberPos, Vector3.down, out RaycastHit hit, 15f, terrainLayer))
-            {
-                GameObject selectedArtifact = artifactPrefabs[Random.Range(0, artifactPrefabs.Length)];
-
-                // 바닥 위치에 유물 생성 및 무작위 회전 부여
-                Quaternion randomRotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
-                Instantiate(selectedArtifact, hit.point, randomRotation, transform);
-            }
-        }
-    }
-
-    // 지형 재생성 시 유물이 중복 스폰되는 현상 방지
-    private void ClearArtifacts()
-    {
-        for (int i = transform.childCount - 1; i >= 0; i--)
-        {
-            Transform child = transform.GetChild(i);
-            if (Application.isPlaying)
-                Destroy(child.gameObject);
-            else
-                DestroyImmediate(child.gameObject);
-        }
     }
 
     // X, Z 축 스케일과 Y 축 스케일을 분리한 3D 노이즈 함수

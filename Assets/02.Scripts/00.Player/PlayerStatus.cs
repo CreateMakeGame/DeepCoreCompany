@@ -35,6 +35,7 @@ public class PlayerStatus : MonoBehaviour
         {
             Debug.LogError("PlayerStateMachine or PlayerData is not assigned.");
         }
+       
     }
 
     private void Update()

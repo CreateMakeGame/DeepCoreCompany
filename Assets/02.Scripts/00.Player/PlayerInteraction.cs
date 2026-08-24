@@ -38,7 +38,7 @@ public class PlayerInteraction : MonoBehaviour
                     string objName = interactable.GetInteractName();
                     string objPrompt = interactable.GetInteractPrompt();
 
-                    UIManager.Instance.InteractableUI.ShowPrompt(objName, objPrompt);
+                    UIManager.Instance.InteractableUI.ShowPrompt(interactable.interactionType, objName, objPrompt);
                 }
                    
                 // 2. E 키 입력 시 상호작용

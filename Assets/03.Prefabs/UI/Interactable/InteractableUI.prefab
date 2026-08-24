@@ -187,7 +187,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9209fc6861a4b054faa94cb7f029b3f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractableUI
+  iconImage: {fileID: 8042662871462889358}
   interactionText: {fileID: 8320887896397546079}
+  defaultIcon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  iconList: []
 --- !u!1 &6746014874940378903
 GameObject:
   m_ObjectHideFlags: 0

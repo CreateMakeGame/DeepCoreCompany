@@ -5,6 +5,8 @@ public class ItemObject : MonoBehaviour, IInteractable
     [Header("아이템 데이터 연결")]
     [SerializeField] private ItemData itemData;
 
+    public InteractionType interactionType => InteractionType.Pickup;
+
     // 1. UI에 띄울 아이템 이름 전달
     public string GetInteractName()
     {

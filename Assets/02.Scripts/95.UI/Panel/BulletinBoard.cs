@@ -4,6 +4,8 @@ public class BulletinBoard : MonoBehaviour, IInteractable
 {
     [SerializeField] private GameObject contractBoardUI; // 에디터에서 띄울 의뢰서 UI 창 연결
 
+    public InteractionType interactionType => InteractionType.Inspect;
+
     public string GetInteractName()
     {
         return "기업 의뢰 게시판";     // UI 제목에 표시될 이름

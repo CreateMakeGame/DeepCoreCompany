@@ -14,10 +14,15 @@ public class VoxelSurfaceGenerator : MonoBehaviour
 
     private void OnValidate()
     {
-        if (gameObject.activeInHierarchy)
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () =>
         {
-            GetComponent<VoxelTerrain>()?.GenerateTerrain();
-        }
+            if (this != null && gameObject.activeInHierarchy)
+            {
+                GetComponent<VoxelTerrain>()?.GenerateTerrain();
+            }
+        };
+#endif
     }
 
     public void GenerateSurface(float[,,] densities, VoxelType[,,] voxelTypes, 

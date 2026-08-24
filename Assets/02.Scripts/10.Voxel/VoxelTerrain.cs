@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -49,12 +48,12 @@ public class VoxelTerrain : MonoBehaviour
     // 유니티 에디터(Inspector)에서 width, height 등의 숫자를 바꿀 때마다 자동으로 실행되는 함수
     void OnValidate()
     {
-        // 씬이 로딩 중일 때는 에러가 날 수 있으니 가볍게 무시
-        if (gameObject.activeInHierarchy)
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () =>
         {
-            InitializeComponents();
-            GenerateTerrain();
-        }
+            if (this != null) GenerateTerrain();
+        };
+#endif
     }
     private void InitializeComponents()
     {
@@ -78,6 +77,12 @@ public class VoxelTerrain : MonoBehaviour
         GenerateDensities(); // 공간의 밀도(노이즈) 결정
         MarchAllCubes();     // 부드러운 보간을 적용해 삼각형 생성
         UpdateMesh();        // 실제 메쉬와 충돌체에 적용
+
+        // 지형 및 메쉬 생성 완료 후 동굴 유물 스폰 실행 (densities, surfaceLevel 전달)
+        if (itemGen != null && caveGen != null)
+        {
+            itemGen.SpawnCaveArtifacts(densities, caveGen.GetChamberCenters(), width, height, depth, surfaceLevel);
+        }
     }
 
     // 공간을 가상의 큐브 격자로 나누고, 각 점에 노이즈를 주어 흙(1)인지 공기(0)인지 결정합니다.
@@ -320,56 +325,5 @@ public class VoxelTerrain : MonoBehaviour
             meshCollider.sharedMesh = null; // 초기화 후 다시 대입해야 즉시 갱신됨
             meshCollider.sharedMesh = mesh;
         }
-    }
-
-
-    private void OnDrawGizmosSelected()
-    {
-        // 굴착 가능 제한 영역을 에디터 상에 표시 (녹색 박스)
-        if (useDigBounds)
-        {
-            Gizmos.color = new Color(0f, 1f, 0f, 0.2f); // 투명한 녹색
-            Gizmos.DrawCube(transform.position + digZoneOffset, digZoneSize);
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(transform.position + digZoneOffset, digZoneSize);
-        }
-
-        // 게임이 실행 중이지 않거나 배열이 생성되지 않았다면 패스
-        if (voxelTypes == null) return;
-
-        Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
-
-        // 전체 격자를 돌면서 땅 속에 매립된 모든 아이템을 해당 색상의 기즈모로 그립니다.
-        for (int x = 0; x <= width; x++)
-        {
-            for (int y = 0; y <= height; y++)
-            {
-                for (int z = 0; z <= depth; z++)
-                {
-                    VoxelType type = voxelTypes[x, y, z];
-
-                    // Air나 Dirt가 아닌 특수 아이템(Iron, Gold, Sample 등)만 표시
-                    if (type != VoxelType.Air && type != VoxelType.Dirt)
-                    {
-                        Gizmos.color = GetGizmoColor(type);
-                        Vector3 worldPos = new Vector3(x, y, z) + transform.position - offset;
-                        Gizmos.DrawWireCube(worldPos, Vector3.one * 0.3f);
-                    }
-                }
-            }
-        }
-    }
-
-    private Color GetGizmoColor(VoxelType type)
-    {
-        return type switch
-        {
-            VoxelType.Iron => Color.gray,
-            VoxelType.Gold => Color.yellow,
-            VoxelType.Artifact => Color.cyan,
-            VoxelType.Sample => Color.magenta,
-            VoxelType.Hazardous => Color.red,
-            _ => Color.white,
-        };
     }
 }

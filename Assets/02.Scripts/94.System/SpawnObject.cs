@@ -34,9 +34,12 @@ public class SpawnObject : MonoBehaviour
     [SerializeField] private LayerMask terrainLayer;        // 지형(Voxel) 레이어
     [SerializeField] private float spawnYOffset = 0.1f;     // 땅속 매립 방지용 오프셋
 
+    private Transform spawnRootContainer;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        spawnRootContainer = GetOrCreateContainer("_SpawnedObjects_Root", transform);
         SpawnMidObject();
         SpawnAllItems();
     }
@@ -55,6 +58,8 @@ public class SpawnObject : MonoBehaviour
         {
             // 3. 땅속 매립 방지 오프셋 적용
             Vector3 spawnPos = hit.point + Vector3.up * spawnYOffset;
+
+            Transform midContainer = GetOrCreateContainer("[Group] MidObject", spawnRootContainer);
             Instantiate(midSpawnObject, spawnPos, Quaternion.identity, transform);
         }
     }
@@ -66,20 +71,21 @@ public class SpawnObject : MonoBehaviour
         {
             if (item.prefab == null) continue;
 
+            string containerName = string.IsNullOrEmpty(item.itemName) ? $"[Group] {item.prefab.name}" : $"[Group] {item.itemName}";
+            Transform itemContainer = GetOrCreateContainer(containerName, spawnRootContainer);
+
             if (item.isClustered)
             {
-                // 뭉쳐서 스폰 (군집 생성)
-                SpawnClusters(item);
+                SpawnClusters(item, itemContainer);
             }
             else
             {
-                // 낱개로 흩뿌려서 스폰
-                SpawnSingleItems(item);
+                SpawnSingleItems(item, itemContainer);
             }
         }
 
     }
-    private void SpawnSingleItems(SpawnItem item)
+    private void SpawnSingleItems(SpawnItem item, Transform parentContainer)
     {
         int spawnedCount = 0;
         int maxAttempts = item.count * 5;
@@ -91,12 +97,12 @@ public class SpawnObject : MonoBehaviour
             Vector3? spawnPos = GetRandomTerrainPosition();
             if (spawnPos.HasValue)
             {
-                CreateObject(item.prefab, spawnPos.Value);
+                CreateObject(item.prefab, spawnPos.Value, parentContainer);
                 spawnedCount++;
             }
         }
     }
-    private void SpawnClusters(SpawnItem item)
+    private void SpawnClusters(SpawnItem item, Transform parentContainer)
     {
         for (int i = 0; i < item.count; i++)
         {
@@ -116,7 +122,7 @@ public class SpawnObject : MonoBehaviour
 
                 if (childSpawnPos.HasValue)
                 {
-                    CreateObject(item.prefab, childSpawnPos.Value);
+                    CreateObject(item.prefab, childSpawnPos.Value, parentContainer);
                 }
             }
         }
@@ -158,10 +164,24 @@ public class SpawnObject : MonoBehaviour
     }
 
     // 프리팹 생성 함수
-    private void CreateObject(GameObject prefab, Vector3 position)
+    private void CreateObject(GameObject prefab, Vector3 position, Transform parentTarget)
     {
         Quaternion randomRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-        GameObject spawnedObj = Instantiate(prefab, position, randomRotation, transform);
+        GameObject spawnedObj = Instantiate(prefab, position, randomRotation, parentTarget);
         spawnedObj.transform.localScale *= Random.Range(0.8f, 1.2f);
+    }
+
+    private Transform GetOrCreateContainer(string containerName, Transform parent)
+    {
+        Transform container = parent.Find(containerName);
+        if (container == null)
+        {
+            GameObject go = new GameObject(containerName);
+            container = go.transform;
+            container.SetParent(parent);
+            container.localPosition = Vector3.zero;
+            container.localRotation = Quaternion.identity;
+        }
+        return container;
     }
 }
