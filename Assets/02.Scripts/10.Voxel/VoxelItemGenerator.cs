@@ -102,7 +102,9 @@ public class VoxelItemGenerator : MonoBehaviour
             // 땅 복셀 바로 위(floorY + 1.0f) 공기 공간에 정상 배치
             if (floorY != -1)
             {
+                // 설정된 범위 내에서 랜덤하게 파묻히는 높이 계산
                 float randomOffset = Random.Range(minArtifactHeightOffset, maxArtifactHeightOffset);
+
                 Vector3 localPos = new Vector3(chamber.x, floorY + randomOffset, chamber.z) - offset;
                 Vector3 worldSpawnPos = transform.TransformPoint(localPos);
 
