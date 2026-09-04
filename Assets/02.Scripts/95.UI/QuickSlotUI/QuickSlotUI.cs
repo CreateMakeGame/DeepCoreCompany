@@ -6,6 +6,9 @@ using UnityEngine.InputSystem;
 using System;
 public class QuickSlotUI : Singleton<QuickSlotUI>
 {
+    [Header("Input Channel")]
+    [SerializeField] private InputReader inputReader;
+
     [Header("Slot UI References")]
     [SerializeField] private List<GameObject> slotObjects = new List<GameObject>();
     [SerializeField] private List<Image> highlightImages = new List<Image>();
@@ -19,15 +22,12 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
     [SerializeField] private float upwardForce = 1f; // 위로 튀어오르는 힘
 
     private ItemData[] slotItems;
-    private Player_Actions inputActions;
 
     public int CurrentSelectedSlotIndex => currentSelectedIndex;
 
     protected override void Awake()
     {
         base.Awake();
-
-        inputActions = new Player_Actions();
         slotItems = new ItemData[slotObjects.Count];
     }
     void Start()
@@ -37,24 +37,26 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
     }
     private void OnEnable()
     {
-        inputActions.Enable();
+        if(inputReader == null)
+        {
+            Debug.LogError("InputReader is not assigned in QuickSlotUI.");
+            return;
+        }
         // 1~4 키 입력 이벤트 등록
-        inputActions.Player.QuickSlot.performed += OnQuickSlotKeyPressed;
+        inputReader.QuickSlotEvent += OnQuickSlotKeyPressed;
         // 마우스 휠 스크롤 이벤트 등록
-        inputActions.Player.QuickSlotScroll.performed += OnQuickSlotScrolled;
+        inputReader.QuickSlotScrollEvent += OnQuickSlotScrolled;
         // 드랍 키 이벤트 등록
-        inputActions.Player.Drop.performed += OnDropKeyPressed;
-
+        inputReader.DropEvent += OnDropKeyPressed;
     }
 
     private void OnDisable()
     {
-        inputActions.Player.QuickSlot.performed -= OnQuickSlotKeyPressed;
-        inputActions.Player.QuickSlotScroll.performed -= OnQuickSlotScrolled;
-        inputActions.Player.Drop.performed -= OnDropKeyPressed;
-
-        inputActions.Disable();
+        inputReader.QuickSlotEvent -= OnQuickSlotKeyPressed;
+        inputReader.QuickSlotScrollEvent -= OnQuickSlotScrolled;
+        inputReader.DropEvent -= OnDropKeyPressed;
     }
+
     /// <summary>
     /// 아이템 획득 시 빈 퀵슬롯 탐색 후 1개 추가 (ItemObject에서 호출)
     /// </summary>
@@ -80,11 +82,8 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
         }
         return false; // 빈 슬롯이 없으면 false 반환
     }
-    /// <summary>
-    /// Q 키 눌렀을 때 현재 선택된 슬롯의 아이템 드랍
-    /// </summary>
-    /// <param name="context"></param>3
-    private void OnDropKeyPressed(InputAction.CallbackContext context)
+    // Q 키 눌렀을 때 현재 선택된 슬롯의 아이템 드랍
+    private void OnDropKeyPressed()
     {
         DropSelectedItem();
     }
@@ -157,37 +156,29 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
         }
     }
 
-    // 1~4 키 입력 이벤트 처리
-    private void OnQuickSlotKeyPressed(InputAction.CallbackContext context)
+    // 숫자 키(1~4 등) 입력 이벤트 처리 (InputReader에서 int slotIndex 전달)
+    private void OnQuickSlotKeyPressed(int slotIndex)
     {
-        string keyPressed = context.control.name; // 눌린 키의 이름을 가져옴
-
-        if (int.TryParse(keyPressed, out int slotNumber))
-        {
-            int index = slotNumber - 1; // 1~4 키를 0~3 인덱스로 변환
-            SelectSlot(index);
-        }
+        // 입력받은 인덱스(1, 2, 3, 4 등)를 배열 인덱스(0, 1, 2, 3)로 변환
+        int index = slotIndex - 1;
+        SelectSlot(index);
     }
-    // 마우스 휠 스크롤 이벤트 처리
-    private void OnQuickSlotScrolled(InputAction.CallbackContext context)
-    {
-        float scrollValue = context.ReadValue<Vector2>().y; // 마우스 휠 스크롤 값 가져오기
 
-        if (scrollValue > 0)
+    // 마우스 휠 스크롤 이벤트 처리
+    private void OnQuickSlotScrolled(float scrollY)
+    {
+        if (scrollY > 0)
         {
             // 휠을 위로 돌림 -> 왼쪽 슬롯으로 이동
             int targetIndex = currentSelectedIndex - 1;
-
             // 인덱스가 0보다 작으면 마지막 슬롯으로 이동
             if (targetIndex < 0) targetIndex = slotObjects.Count - 1; // 마지막 슬롯으로 이동
-
             SelectSlot(targetIndex);
         }
-        else if(scrollValue < 0)
+        else if(scrollY < 0)
         {
             // 휠을 아래로 돌림 -> 오른쪽 슬롯으로 이동
             int targetIndex = currentSelectedIndex + 1;
-
             // 인덱스가 마지막 슬롯보다 크면 첫 슬롯으로 이동
             if (targetIndex >= slotObjects.Count) targetIndex = 0; // 첫 슬롯으로 이동
 

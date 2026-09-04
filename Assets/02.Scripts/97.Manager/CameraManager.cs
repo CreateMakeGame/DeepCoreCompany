@@ -33,7 +33,6 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-
     /// <summary>
     /// CinemachineInputAxisController의 Reader.Gain 값을 직접 수정하여 감도를 조절합니다.
     /// </summary>

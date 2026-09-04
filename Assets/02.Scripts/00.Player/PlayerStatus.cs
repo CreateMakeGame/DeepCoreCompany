@@ -35,13 +35,44 @@ public class PlayerStatus : MonoBehaviour
         {
             Debug.LogError("PlayerStateMachine or PlayerData is not assigned.");
         }
-       
+        BindUIReferences();
     }
+
 
     private void Update()
     {
+        // 혹시 Start 시점에 UI 바인딩을 실패했었다면 복구 시도
+        if (hpImage == null || staminaImage == null)
+        {
+            BindUIReferences();
+        }
+
         HandleStamina();
         UpdateStatusUI();
+    }
+
+    private void BindUIReferences()
+    {
+        if (UIManager.Instance == null || UIManager.Instance.MainHUDPanel == null)
+        {
+            Debug.LogWarning("[PlayerStatus] UIManager 또는 MainHUDPanel을 찾을 수 없습니다.");
+            return;
+        }
+        GameObject hudRoot = UIManager.Instance.MainHUDPanel;
+
+        foreach (Image img in hudRoot.GetComponentsInChildren<Image>(true))
+        {
+            if (img.name.Equals("HP", StringComparison.OrdinalIgnoreCase))
+            {
+                hpImage = img;
+            }
+            else if (img.name.Equals("Stamina", StringComparison.OrdinalIgnoreCase))
+            {
+                staminaImage = img;
+            }
+        }
+        if (hpImage == null) Debug.LogWarning("[PlayerStatus] HP Image 바인딩 실패!");
+        if (staminaImage == null) Debug.LogWarning("[PlayerStatus] Stamina Image 바인딩 실패!");
     }
 
     private void HandleStamina()

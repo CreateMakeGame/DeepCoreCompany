@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private Player_Actions controls;
-    private Vector2 moveInput;
+    [Header("Input Channel")]
+    [SerializeField] private InputReader inputReader;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform; // Main Camera 혹은 Vcam의 Transform
 
     #region Properties
-    public Vector2 MoveDirection => moveInput;
+    public Vector2 MoveDirection { get; private set; }
     public bool IsRunPressed { get; private set; }
     public bool IsJumpPressed { get; private set; }
     public bool IsDigPressed { get; private set; }
@@ -19,23 +19,29 @@ public class PlayerController : MonoBehaviour
 
     public Transform CameraTransform => cameraTransform;    // 카메라 참조
     #endregion
-
-    private void Awake()
+    private void OnEnable()
     {
-        //  생성된 C# 클래스의 인스턴스를 만듭니다.
-        controls = new Player_Actions();
+        if (inputReader == null) return;
 
-        OnMove();
-        OnJump();
-        OnRun();
-        OnDig();
-        OnInteract();
+        // InputReader의 이벤트 구독
+        inputReader.MoveEvent += OnMove;
+        inputReader.JumpEvent += OnJump;
+        inputReader.RunEvent += OnRun;
+        inputReader.DigEvent += OnDig;
+        inputReader.InteractEvent += OnInteract;
     }
 
-    
+    private void OnDisable()
+    {
+        if (inputReader == null) return;
 
-    private void OnEnable() => controls.Player.Enable(); // 활성화
-    private void OnDisable() => controls.Player.Disable(); // 비활성화
+        // 구독 해제 (메모리 누수 방지)
+        inputReader.MoveEvent -= OnMove;
+        inputReader.JumpEvent -= OnJump;
+        inputReader.RunEvent -= OnRun;
+        inputReader.DigEvent -= OnDig;
+        inputReader.InteractEvent -= OnInteract;
+    }
 
     private void LateUpdate() 
     {
@@ -61,14 +67,18 @@ public class PlayerController : MonoBehaviour
 
     public void SetInputActive(bool isActive)
     {
+        if (inputReader == null) return;
+
         if (isActive)
-            controls.Player.Enable();
+        {
+            inputReader.EnablePlayerInput();
+        }
         else
         {
-            controls.Player.Disable();
+            inputReader.DisableAllInput();
 
             // 입력 상태 초기화
-            moveInput = Vector2.zero;
+            MoveDirection = Vector2.zero;
             IsRunPressed = false;
             IsJumpPressed = false;
             IsDigPressed = false;
@@ -77,38 +87,11 @@ public class PlayerController : MonoBehaviour
     }
 
     #region 이벤트 구독
-    private void OnMove()
-    {
-        //  WASD (Vector2) 입력이 발생할 때마다 변수에 저장합니다.
-        controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        controls.Player.Move.canceled += ctx => moveInput = Vector2.zero;
-    }
-    private void OnJump()
-    {
-        // 점프 버튼이 눌렸을 때 로직을 실행합니다.
-        controls.Player.Jump.started += ctx => IsJumpPressed = true;
-        controls.Player.Jump.canceled += ctx => IsJumpPressed = false;
-    }
-    private void OnRun()
-    {
-        // 달리기 버튼이 눌렸을 때 로직을 실행합니다.
-        controls.Player.Run.started += ctx => IsRunPressed = true;
-        controls.Player.Run.canceled += ctx => IsRunPressed = false;
-    }
-
-    private void  OnDig()
-    {
-        // 파기 버튼이 눌렸을 때 로직을 실행합니다.
-        controls.Player.Dig.started += ctx =>  IsDigPressed = true;
-        controls.Player.Dig.canceled += ctx =>  IsDigPressed = false;
-    }
-
-    private void OnInteract()
-    {
-        // 상호작용 버튼이 눌렸을 때 로직을 실행합니다.
-        controls.Player.Interact.started += ctx => IsInteractPressed = true;
-        controls.Player.Interact.canceled += ctx => IsInteractPressed = false;
-    }
+    private void OnMove(Vector2 dir) => MoveDirection = dir;
+    private void OnJump(bool isPressed) => IsJumpPressed = isPressed;
+    private void OnRun(bool isPressed) => IsRunPressed = isPressed;
+    private void OnDig(bool isPressed) => IsDigPressed = isPressed;
+    private void OnInteract(bool isPressed) => IsInteractPressed = isPressed;
     #endregion
 
 }

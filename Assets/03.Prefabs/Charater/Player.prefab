@@ -3195,6 +3195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de488343e37dfa4db319a6dc828a65f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  inputReader: {fileID: 11400000, guid: f4eb3261b7c214c4581cc1d1863b5df8, type: 2}
   cameraTransform: {fileID: 3489114436858855872}
 --- !u!114 &1912123714409756592
 MonoBehaviour:
@@ -3556,6 +3557,18 @@ PrefabInstance:
     - target: {fileID: 7867160740210141431, guid: 710a512d105cb634e9562de40bf0482f, type: 3}
       propertyPath: m_Name
       value: Camera
+      objectReference: {fileID: 0}
+    - target: {fileID: 8283692996667140932, guid: 710a512d105cb634e9562de40bf0482f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8283692996667140932, guid: 710a512d105cb634e9562de40bf0482f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8283692996667140932, guid: 710a512d105cb634e9562de40bf0482f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

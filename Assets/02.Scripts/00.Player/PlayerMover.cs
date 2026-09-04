@@ -36,7 +36,8 @@ public class PlayerMover : MonoBehaviour
     public void Move(Vector2 input)
     {
         //move = new Vector3(intput.x, 0, intput.y);
-        move = (transform.forward * input.y) + (transform.right * input.x); // 카메라 방향 기준 이동 벡터 계산
+        move = (transform.forward * input.y) 
+            + (transform.right * input.x); // 카메라 방향 기준 이동 벡터 계산
     }
     public void SetMoveSpeed(float speed)
     {
@@ -51,7 +52,8 @@ public class PlayerMover : MonoBehaviour
     public void Jump()
     {
         // 물리 공식 기반 점프 계산: v = sqrt(h * -2 * g)
-        velocity.y = Mathf.Sqrt(stateMachine.Data.jumpHeight * -2f * stateMachine.Data.gravity);    // 점프 공식: v = sqrt(h * -2 * g)
+        velocity.y = Mathf.Sqrt(stateMachine.Data.jumpHeight * -2f 
+            * stateMachine.Data.gravity);    // 점프 공식: v = sqrt(h * -2 * g)
     }
 
     public bool IsGrounded()

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
@@ -9,6 +10,8 @@ public class UIManager : MonoBehaviour
     [Header("Global UI Prefab (런타임에 소환할 프리팹)")]
     [SerializeField] private GameObject globalUIRootPrefab;
     private GameObject globalUIRootInstance;
+    [Header("Input Ststem Settings")]
+    [SerializeField] private InputReader inputReader;
 
     public GameObject InventoryUI { get; private set; }
     public InteractableUI InteractableUI { get; private set; }
@@ -16,7 +19,7 @@ public class UIManager : MonoBehaviour
 
     // 현재 씬에 존재하는 로컬 UI들을 타입별로 안전하게 보관할 딕셔너리
     private Dictionary<System.Type, MonoBehaviour> localUIs = new Dictionary<System.Type, MonoBehaviour>();
-    private List<GameObject> openUIStack = new List<GameObject>();
+    private Stack<GameObject> openUIStack = new Stack<GameObject>();
 
     private void Awake()
     {
@@ -26,12 +29,20 @@ public class UIManager : MonoBehaviour
     {
         // 씬 로드 이벤트 구독 (씬 이동 시 카메라 재연결용)
         SceneManager.sceneLoaded += OnSceneLoaded;
+        if (inputReader != null)
+        {
+            inputReader.OptionEvent += OnCancelPressed;
+        }
     }
 
     private void OnDisable()
     {
         // 구독 해제
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        if (inputReader != null)
+        {
+            inputReader.OptionEvent -= OnCancelPressed;
+        }
     }
 
     private void InitGlobalUIRoot()
@@ -92,7 +103,7 @@ public class UIManager : MonoBehaviour
 
         foreach (Transform child in globalUIRoot.GetComponentsInChildren<Transform>(true))
         {
-            if (child.name == "MainHUDPanel")
+            if (child.name == "BottomHUDGroup")
             {
                 MainHUDPanel = child.gameObject;
                 break;
@@ -114,6 +125,26 @@ public class UIManager : MonoBehaviour
         //}
         //if (invTransform != null) InventoryUI = invTransform.gameObject;
     }
+
+    #region ESC (Cancel) 키 입력 처리
+    private void OnCancelPressed()
+    {
+        // 열려있는 UI 팝업이 있다면 가장 최상단 팝업 닫기
+        if (openUIStack.Count > 0)
+        {
+            CloseTopUI();
+        }
+        else
+        {
+            // 열린 팝업이 없을 때 ESC 누르면 옵션창 토글
+            OptionUI optionUI = GetLocalUI<OptionUI>();
+            if (optionUI != null)
+            {
+                optionUI.ToggleOption();
+            }
+        }
+    }
+    #endregion
 
     #region 로컬 UI 동적 등록 시스템
     public void RegisterLocalUI<T>(T uiInstance) where T : MonoBehaviour
@@ -168,16 +199,56 @@ public class UIManager : MonoBehaviour
     {
         if (uiPanel == null || uiPanel.activeSelf) return;
         uiPanel.SetActive(true);
-        if (!openUIStack.Contains(uiPanel)) openUIStack.Add(uiPanel);
+
+        // [수정 2] Add 대신 Push 사용 및 중복 검사 방식 보완
+        if (!openUIStack.Contains(uiPanel))
+        {
+            openUIStack.Push(uiPanel);
+        }
         RefreshCursorState();
     }
 
+
+    // 특정 UI 패널 지정 닫기 (X 버튼 누를 때 등)
     public void CloseUI(GameObject uiPanel)
     {
         if (uiPanel == null || !uiPanel.activeSelf) return;
+
         uiPanel.SetActive(false);
-        openUIStack.Remove(uiPanel);
+
+        // 스택에서 제거 처리 (중간 팝업이 닫힐 수 있으므로 재구성)
+        if (openUIStack.Contains(uiPanel))
+        {
+            Stack<GameObject> tempStack = new Stack<GameObject>();
+            while (openUIStack.Count > 0)
+            {
+                GameObject top = openUIStack.Pop();
+                if (top != uiPanel)
+                {
+                    tempStack.Push(top);
+                }
+            }
+            while (tempStack.Count > 0)
+            {
+                openUIStack.Push(tempStack.Pop());
+            }
+        }
+
         RefreshCursorState();
+    }
+
+    // 가장 위에 있는 팝업 1개만 닫기 (ESC 처리용)
+    public void CloseTopUI()
+    {
+        if (openUIStack.Count > 0)
+        {
+            GameObject topUI = openUIStack.Pop();
+            if (topUI != null)
+            {
+                topUI.SetActive(false);
+            }
+            RefreshCursorState();
+        }
     }
 
     private void RefreshCursorState()
@@ -202,6 +273,20 @@ public class UIManager : MonoBehaviour
         {
             InteractableUI.gameObject.SetActive(!isAnyPopupOpen);
         }
+    }
+
+    public void QuitGame()
+    {
+        // 1. 종료 전 플레이어 데이터, 옵션 설정 등 자동 저장 로직 실행
+        // SaveSystem.SaveAll();
+
+#if UNITY_EDITOR
+        // 유니티 에디터에서 실행 중일 때: Play 모드 종료
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        // 실제 빌드된 게임일 때: 응용 프로그램 종료
+        Application.Quit();
+#endif
     }
     #endregion
 }

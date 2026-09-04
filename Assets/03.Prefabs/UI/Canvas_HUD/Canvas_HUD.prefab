@@ -94,6 +94,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 159d2444f08930643b55273110edc96a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuickSlotUI
+  inputReader: {fileID: 11400000, guid: f4eb3261b7c214c4581cc1d1863b5df8, type: 2}
   slotObjects:
   - {fileID: 2738508101559059285}
   - {fileID: 7954836832265153336}
