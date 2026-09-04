@@ -1,11 +1,9 @@
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class OptionUI : MonoBehaviour
 {
     [Header("UI 요소 연결")]
-    [SerializeField] private GameObject optionPanel;    // OptionPanel
     [SerializeField] private Button optionQuitBtn;      // OptionQuit
     [SerializeField] private Button optionXBtn;         // OptionX
 
@@ -36,9 +34,8 @@ public class OptionUI : MonoBehaviour
     // 옵션 창 켜기 / 끄기
     public void ToggleOption()
     {
-        if(optionPanel == null) return;
 
-        if(optionPanel.activeSelf)
+        if(gameObject.activeSelf)
         {
             CloseOption();
         }
@@ -50,17 +47,12 @@ public class OptionUI : MonoBehaviour
 
     public void OpenOption()
     {
-        if(optionPanel != null)
-        {
-           UIManager.Instance?.OpenUI(optionPanel);
-        }
+        // 자기 자신(gameObject)을 UIManager에 전달
+        UIManager.Instance?.OpenUI(gameObject);
     }
 
     public void CloseOption()
     {
-        if(optionPanel != null)
-        {
-            UIManager.Instance?.CloseUI(optionPanel);
-        }
+        UIManager.Instance?.CloseUI(gameObject);
     }
 }
