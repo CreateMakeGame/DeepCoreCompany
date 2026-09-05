@@ -11,7 +11,6 @@ public class PlayerMover : MonoBehaviour
     private Vector2 velocity;
     private Vector3 move;   // 이동 방향 벡터
 
-
     private void Awake()
     {
         controller = GetComponent<CharacterController>();

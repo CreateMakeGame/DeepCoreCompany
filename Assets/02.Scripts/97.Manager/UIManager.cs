@@ -247,8 +247,9 @@ public class UIManager : MonoBehaviour
             {
                 topUI.SetActive(false);
             }
-            RefreshCursorState();
         }
+        // 스택이 비었든 안 비었든, UI를 닫는 시점에는 항상 커서 및 입력 상태를 다시 검사
+        RefreshCursorState();
     }
 
     private void RefreshCursorState()
@@ -260,19 +261,36 @@ public class UIManager : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+            // UI가 열리면 캐릭터 이동/시선 회전 입력 차단 (ESC 키 등 UI 입력은 유지)
+            if (inputReader != null)
+            {
+                inputReader.DisablePlayerControl();
+            }
+
+            if (CameraManager.Instance != null)
+            {
+                CameraManager.Instance.SetCameraInputActive(false);
+            }
         }
         else
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+
+            // UI가 닫히면 캐릭터 이동/시선 회전 입력 다시 허용
+            if (inputReader != null)
+            {
+                inputReader.EnablePlayerControl();
+            }
+            if (CameraManager.Instance != null)
+            {
+                CameraManager.Instance.SetCameraInputActive(true);
+            }
         }
         if(MainHUDPanel != null) MainHUDPanel.SetActive(!isAnyPopupOpen);
 
         // 팝업 창이 열릴 때 상호작용 프롬프트(InteractableUI)도 숨기고 싶다면 주석 해제
-         if (InteractableUI != null)
-        {
-            InteractableUI.gameObject.SetActive(!isAnyPopupOpen);
-        }
+        if (InteractableUI != null) InteractableUI.gameObject.SetActive(!isAnyPopupOpen);
     }
 
     public void QuitGame()

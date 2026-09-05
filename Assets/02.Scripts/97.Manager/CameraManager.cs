@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-public class CameraManager : MonoBehaviour
+public class CameraManager : Singleton<CameraManager>
 {
     [Header("Settings")]
     [SerializeField] private CinemachineInputAxisController axisController; // CinemachineInputAxisController 컴포넌트 참조
@@ -11,8 +11,13 @@ public class CameraManager : MonoBehaviour
     [Range(0.01f, 10.0f)]
     public float verticalSensitivity = 5f;   // 수직 감도 
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake(); // Singleton 초기화
+        if (axisController == null)
+        {
+            axisController = GetComponent<CinemachineInputAxisController>();
+        }
         ApplySensitivity();
     }
 
@@ -60,5 +65,15 @@ public class CameraManager : MonoBehaviour
         horizontalSensitivity = h;
         verticalSensitivity = v;
         ApplySensitivity();
+    }
+
+    // UI 열림 / 닫힘 시 Cinemachine 마우스 입력 제어 메서드
+    public void SetCameraInputActive(bool isActive)
+    {
+        if (axisController != null)
+        {
+            // AxisController 컴포넌트를 비활성화하면 마우스 이동 입력을 즉시 멈춥니다.
+            axisController.enabled = isActive;
+        }
     }
 }

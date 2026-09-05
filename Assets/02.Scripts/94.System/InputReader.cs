@@ -104,12 +104,21 @@ public class InputReader : ScriptableObject, Player_Actions.IPlayerActions
 
     public void OnLook(InputAction.CallbackContext context)
     {
+        // Look 액션이 비활성화(Disable)되어 있으면 회전 이벤트를 보내지 않음
+        if (inputActions != null && !inputActions.Player.Look.enabled) return;
         // 마우스 이동 입력값 전달
         LookEvent.Invoke(context.ReadValue<Vector2>());
     }
 
     public void OnMove(InputAction.CallbackContext context)
     {
+        // Move 액션이 비활성화되어 있으면 Vector2.zero를 전달하여 이동 정지
+        if (inputActions != null && !inputActions.Player.Move.enabled)
+        {
+            MoveEvent.Invoke(Vector2.zero); // 이동 입력 비활성화 시 이동값을 0으로 전달
+            return;
+        }
+
         // UnityAction<Vector2> MoveEvent를 통해 구독자들에게 이동 입력값 전달
         MoveEvent.Invoke(context.ReadValue<Vector2>());
     }
@@ -151,5 +160,28 @@ public class InputReader : ScriptableObject, Player_Actions.IPlayerActions
         {
             RunEvent.Invoke(false); // Run 버튼 뗌
         }
+    }
+    /// <summary>
+    /// UI가 열렸을 때 이동 및 시선 회전 등의 플레이어 조작 입력만 비활성화
+    /// </summary>
+    public void DisablePlayerControl()
+    {
+        inputActions.Player.Move.Disable();
+        inputActions.Player.Look.Disable();
+        inputActions.Player.Jump.Disable();
+        inputActions.Player.Run.Disable();
+        inputActions.Player.Dig.Disable();
+    }
+
+    /// <summary>
+    /// UI가 열렸을 때 이동 및 시선 회전 등의 플레이어 조작 입력만 활성화
+    /// </summary>
+    public void EnablePlayerControl()
+    {
+        inputActions.Player.Move.Enable();
+        inputActions.Player.Look.Enable();
+        inputActions.Player.Jump.Enable();
+        inputActions.Player.Run.Enable();
+        inputActions.Player.Dig.Enable();
     }
 }

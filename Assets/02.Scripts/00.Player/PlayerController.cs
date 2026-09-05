@@ -50,8 +50,9 @@ public class PlayerController : MonoBehaviour
 
     private void AlignPlayerWithCamera()
     {
-        // 커서가 활성화되어 있는 경우나 카메라 Transform이 null인 경우에는 회전 로직을 수행하지 않습니다.
-        if (Cursor.visible || cameraTransform == null) return;
+        // Cursor.lockState가 Locked 상태가 아니면 UI가 열려있는 것이므로 회전을 무조건 멈춥니다.
+        if (Cursor.lockState != CursorLockMode.Locked || Cursor.visible || cameraTransform == null)
+            return;
 
         // 카메라의 전방(Forward) 방향에서 수평 평면(X, Z) 벡터만 추출합니다.
         Vector3 cameraForward = cameraTransform.forward;

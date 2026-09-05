@@ -148,6 +148,28 @@ public class ContractBoardUI : MonoBehaviour
         }
         CloseBoard();
     }
-    public void OpenBoard() => UIManager.Instance.OpenUI(gameObject);
-    public void CloseBoard() => UIManager.Instance.CloseUI(gameObject);
+    public void OpenBoard()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.OpenUI(gameObject);
+        }
+        else
+        {
+            gameObject.SetActive(true);
+        }
+
+    }
+    public void CloseBoard()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.CloseUI(gameObject);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
+
+    }
 }

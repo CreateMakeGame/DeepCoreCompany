@@ -44,7 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8aedcd61be9c0f244b783bd2d6711b39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
-  globalUIRootPrefab: {fileID: 3654895661906764385, guid: 3028443d8edb3b9499b49994965f0664, type: 3}
+  globalUIRootPrefab: {fileID: 7283106620792532219, guid: 3ba627b214b68094faf147409451b0e3, type: 3}
+  inputReader: {fileID: 11400000, guid: f4eb3261b7c214c4581cc1d1863b5df8, type: 2}
 --- !u!1 &950397706634535867
 GameObject:
   m_ObjectHideFlags: 0
