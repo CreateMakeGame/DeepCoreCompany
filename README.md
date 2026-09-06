@@ -13,6 +13,24 @@
 
 ---
 
+## 🎥 Gameplay
+
+### Main Gameplay
+
+![Gameplay](docs/images/gameplay.gif)
+
+### Inventory
+
+![Inventory](docs/images/inventory.gif)
+
+### UI Interaction
+
+![UI](docs/images/ui.gif)
+
+> Gameplay 영상 및 GIF는 개발 진행에 따라 업데이트할 예정입니다.
+
+---
+
 ## 📌 Project Overview
 
 본 프로젝트는 Unity 엔진 기반의 3D 프로젝트로, **절차적 맵 생성 로직**과 **확장 가능한 UI 및 데이터 관리 아키텍처** 구축에 중점을 두고 개발되었습니다.
@@ -110,44 +128,39 @@ UI 상태를 기준으로 Player Controller와 Camera Controller의
 
 ```text
 Assets/
-├── Scripts/
-│   ├── Player/
-│   ├── Inventory/
-│   ├── UI/
-│   └── Camera/
+├── 00.Scenes/
+├── 01.ScripableObject/
+├── 02.Scripts/
+│   ├── 00.Player/
+│   ├── 10.Voxel/
+│   ├── 11.Item/
+│   ├── 12.Contract/
+│   ├── 94.System/
+│   ├── 95.UI/
+│   ├── 96.Static/
+│   ├── 97.Manager/
+│   └── 99.Interface/
 │
-├── Prefabs/
-├── Scenes/
-├── Materials/
-└── Resources/
+├── 03.Prefabs/
+├── 04.Animations/
+├── 05.Art/
+├── 07.InputSystem/
+└── 99.Asset/
 ```
 
 | Directory           | Description      |
 | ------------------- | ---------------- |
+| `Scenes`            | 게임 씬          |
+| `ScripableObject`   | 게임 데이터 관리  |
 | `Scripts/Player`    | 플레이어 이동 및 상태 관리  |
-| `Scripts/Inventory` | 인벤토리 데이터 및 로직    |
-| `Scripts/UI`        | UI 상태 및 UI 관련 로직 |
-| `Scripts/Camera`    | 카메라 제어           |
+| `Scripts/Voxel`     | 지형 및 동굴 관련 로직    |
+| `Scripts/System`    | 게임 시스템 관련 로직 |
+| `Scripts/UI`        | UI 및 팝업 관련 로직  |
 | `Prefabs`           | 재사용 가능한 게임 오브젝트  |
-| `Scenes`            | 게임 씬             |
-
----
-
-## 🎥 Gameplay
-
-### Main Gameplay
-
-![Gameplay](docs/images/gameplay.gif)
-
-### Inventory
-
-![Inventory](docs/images/inventory.gif)
-
-### UI Interaction
-
-![UI](docs/images/ui.gif)
-
-> Gameplay 영상 및 GIF는 개발 진행에 따라 업데이트할 예정입니다.
+| `Animations`        | 게임 애니메이션 관련 데이터   |
+| `Art`               | 이미지 소스 관련 데이터   |
+| `InputSystem`       | 입력 시스템 관련 로직 데이터   |
+| `Asset`             | 에셋 관련 데이터 폴더   |
 
 ---
 
@@ -209,18 +222,33 @@ UI가 닫히면 정상적으로 입력을 복구하도록 개선했습니다.
 
 ## 📚 Development Log
 
-### Inventory System
+### Player & Camara
 
-* 인벤토리 데이터 구조 설계
+* Input System 연동 및 이동 제어
+* Cinemachine Camera 입력축 동적 제어
+
+### Voxel 
+
+* Voxel데이터 테이블 생성
+* Voxel를 활용한 지형 생성
+* 동굴 생성 및 랜덤 시드 적용
+* 동굴 아이템 생성 적용
+
+### Contract & Slot System
+
+* 의뢰서 데이터 추가
+* 의뢰서 목록 호출
+
+* 아이템 슬롯 데이터 구조 설계
 * 아이템 데이터 추가
-* Inventory 동작 테스트
+* 마우스 힐을 통한 선택 추가
 
-### UI / Camera
+### UI
 
 * UI 열기 / 닫기 기능 구현
 * UI 활성화 상태에 따른 Player Input 제어
 * UI 활성화 상태에 따른 Camera Input 제어
-* 관련 코드 Refactoring
+* 관련 코드 UImanger.cs
 
 ---
 
@@ -233,11 +261,11 @@ UI가 닫히면 정상적으로 입력을 복구하도록 개선했습니다.
 
 ## 👤 Developer
 
-**[이름 / GitHub ID]**
+**[김태겸 / BeautifulMaple]**
 
-* GitHub: [GitHub Profile]
+* GitHub: [[GitHub Profile]](https://github.com/BeautifulMaple)
 * Portfolio: [Portfolio Link]
-* Email: [Email]
+* Email: [Email](xorua4510@gmail.com)
 
 ---
 
