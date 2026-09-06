@@ -1,6 +1,7 @@
 # 🎮 DeepCoreCompany
 
 > Unity와 C#을 기반으로 개발 중인 3D 채광 프로젝트입니다.
+
 ![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?style=flat-square&logo=unity)
 ![C#](https://img.shields.io/badge/C%23-239120?style=flat-square&logo=c-sharp)
 ![Platform](https://img.shields.io/badge/Platform-PC%20%2F%20Windows-blue?style=flat-square)
@@ -17,10 +18,10 @@
 | 항목          | 내용             |
 | ----------- | -------------- |
 | Genre       | [채광, 어드벤처, 생존]        |
-| Engine      | Unity [6]     |
+| Engine      | Unity 6 (6000.3.10f1)    |
 | Language    | C#             |
-| Platform    | PC             |
-| Development | [개인 프로젝트]  |
+| Platform    | PC (Windows)   |
+| Development | 개인 프로젝트 |
 | Status      | In Development |
 
 ---
@@ -37,18 +38,18 @@
 
 ## 🛠 Tech Stack
 
-* **Engine:** Unity [버전]
-* **Language:** C#
-* **Version Control:** Git / GitHub
-* **IDE:** [Visual Studio / Rider]
-* **Tools:** GitHub Desktop
+- **Engine & Core**: Unity, C#
+- **Camera System**: Unity Cinemachine (v3)
+- **Input System**: Unity Input System (InputReader 이벤트 기반 처리)
+- **UI System**: TextMeshPro, UnityEngine.UI (UGUI), Dynamic LayoutRebuilder
+- **Architecture**: Generic Singleton Pattern, Interface-based Interaction Framework, UI Stack Architecture
+- **Version Control**: Git / GitHub
 
 ### Unity Packages
 
 * [Input System]
 * [Cinemachine]
 * [TextMeshPro]
-* [기타 사용 패키지]
 
 ---
 
@@ -61,12 +62,10 @@
 * 플레이어 상태 관리
 * UI 상태에 따른 플레이어 입력 제어
 
-### Inventory System
+### ItemSlot System
 
 * 아이템 데이터 관리
-* 인벤토리 데이터 추가 및 제거
-* 인벤토리 슬롯 관리
-* Inventory와 UI 연동
+
 
 ### UI System
 
