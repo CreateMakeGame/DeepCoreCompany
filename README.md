@@ -19,7 +19,7 @@
 
 ![Gameplay](docs/images/gameplay.gif)
 
-### Inventory
+### Contract & Slot System
 
 ![Inventory](docs/images/inventory.gif)
 
