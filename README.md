@@ -1,4 +1,4 @@
-<img width="386" height="216" alt="Game Video" src="https://github.com/user-attachments/assets/c766e937-0d9d-406c-9a88-edc72566995f" /># 🎮 DeepCoreCompany
+# 🎮 DeepCoreCompany
 
 > Unity와 C#을 기반으로 개발 중인 3D 채광 프로젝트입니다.
 
@@ -247,6 +247,7 @@ UI가 닫히면 정상적으로 입력을 복구하도록 개선했습니다.
 
 * [ ] 동굴 몬스터/오브젝트 무작위 스폰: 생성된 동굴 내부 영역을 감지하여 적 및 수집 오브젝트 자동 스폰 로직 연동
 * [ ] 채광 시 딜레이 되는 문제점 수정 예정
+* [ ] 카메라 관통 문제
 
 ---
 
