@@ -1,6 +1,10 @@
 # 🎮 DeepCoreCompany
 
-> Unity와 C#을 기반으로 개발 중인 [채광] 프로젝트입니다.
+> Unity와 C#을 기반으로 개발 중인 3D 채광 프로젝트입니다.
+![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?style=flat-square&logo=unity)
+![C#](https://img.shields.io/badge/C%23-239120?style=flat-square&logo=c-sharp)
+![Platform](https://img.shields.io/badge/Platform-PC%20%2F%20Windows-blue?style=flat-square)
+![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
 
 플레이어의 게임 플레이를 중심으로 **Player Controller, UI, Camera** 등의 시스템을 구현하고 있습니다.
 
