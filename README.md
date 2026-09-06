@@ -265,7 +265,7 @@ UI가 닫히면 정상적으로 입력을 복구하도록 개선했습니다.
 
 * GitHub: [[GitHub Profile]](https://github.com/BeautifulMaple)
 * Portfolio: [Portfolio Link]
-* Email: [Email](xorua4510@gmail.com)
+* Email: xorua4510@gmail.com
 
 ---
 
