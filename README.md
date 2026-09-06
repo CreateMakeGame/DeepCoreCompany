@@ -15,6 +15,15 @@
 
 ## 📌 Project Overview
 
+본 프로젝트는 Unity 엔진 기반의 3D 프로젝트로, **절차적 맵 생성 로직**과 **확장 가능한 UI 및 데이터 관리 아키텍처** 구축에 중점을 두고 개발되었습니다.
+
+동적 지형 생성을 위한 **절차적 동굴 생성 알고리즘**을 도입하고, 상호작용 가능한 객체(의뢰 게시판, 아이템 슬롯 등)와 시스템 간의 결합도를 낮추기 위해 **인터페이스 기반 설계 및 Dynamic Registry Pattern**을 적용했습니다. 
+
+또한, **Cinemachine v3**와 **Unity Input System**을 연동하여 UI 활성화 시 카메라 시선 및 캐릭터 이동 조작이 원활하게 제어되도록 설계했습니다.
+
+- **핵심 목표**: 매번 새로워지는 탐색 환경(동굴 생성) 구축 및 UI 상태 전환 시 플레이어 입력 제어의 안정성 확보
+- **주요 구현**: 절차적 동굴 생성, 플레이어 이동/카메라 제어, 의뢰서 시스템, 아이템 슬롯 UI, UI Stack 관리
+
 | 항목          | 내용             |
 | ----------- | -------------- |
 | Genre       | [채광, 어드벤처, 생존]        |
@@ -39,44 +48,34 @@
 ## 🛠 Tech Stack
 
 - **Engine & Core**: Unity, C#
-- **Camera System**: Unity Cinemachine (v3)
-- **Input System**: Unity Input System (InputReader 이벤트 기반 처리)
+- **Camera & Input**: Unity Cinemachine (v3), Unity Input System (`InputReader` 이벤트 기반 처리)
+- **Procedural Generation**: Cell Automata / Marching Cubes Algorithm (동굴 지형 생성)
 - **UI System**: TextMeshPro, UnityEngine.UI (UGUI), Dynamic LayoutRebuilder
 - **Architecture**: Generic Singleton Pattern, Interface-based Interaction Framework, UI Stack Architecture
 - **Version Control**: Git / GitHub
 
-### Unity Packages
-
-* [Input System]
-* [Cinemachine]
-* [TextMeshPro]
-
----
 
 ## 🎮 Main Features
 
-### Player Controller
+### 1. 플레이어 컨트롤러 & 카메라 (Player Controller & Camera System)
+- **Input System 기반 이동**: Unity New Input System을 연동하여 지연 없는 플레이어 이동 및 회전 처리.
+- **Cinemachine v3 연동**: 카메라 감도 수평/수직 제어 및 입력축(`CinemachineInputAxisController`) 동적 비활성화 조작 지원.
 
-* 플레이어 이동
-* 점프
-* 플레이어 상태 관리
-* UI 상태에 따른 플레이어 입력 제어
+### 2. 절차적 동굴 생성 및 맵 제작 (Procedural Cave Generation & Map Building)
+- **동적 맵 생성 알고리즘**: 시드(Seed) 값을 기반으로 동굴 지형 및 벽면, 통로를 런타임에 절차적으로 생성.
+- **맵 디스플레이 및 타일 바인딩**: 생성된 지형 데이터를 바탕으로 메시/메시 콜라이더를 동적 배치하여 재탐색 가치 부여.
 
-### ItemSlot System
+### 3. 의뢰서 시스템 (Contract System)
+- **데이터 기반 의뢰 매핑**: `ContractManager` 데이터를 파싱하여 의뢰 리스트 스크롤 뷰에 동적 프리팹 생성.
+- **상세 패널 바인딩**: 의뢰 선택 시 우측 상세 패널(`Target`, `Quantity`, `Reward` 등) 텍스트 데이터 갱신 및 `LayoutRebuilder`를 이용한 포맷팅.
 
-* 아이템 데이터 관리
+### 4. 아이템 슬롯 시스템 (Item Slot System)
+- **슬롯 UI 데이터 표현**: 아이템 아이콘, 개수 텍스트 및 희귀도 프레임 표시 기능.
+- **인터랙션 연동**: 아이템 슬롯 선택, 호버링 시 툴팁 반환 및 슬롯 데이터 상태 동기화.
 
-
-### UI System
-
-* UI 열기 / 닫기
-* UI 상태 관리
-* UI 활성화 상태에 따른 플레이어 입력 제어
-
-### Camera System
-
-* 플레이어 카메라 제어
-* UI 활성화 상태에 따른 카메라 입력 제어
+### 5. UI Stack & 입력 통제 관리 (UI Manager Architecture)
+- **LIFO 기반 팝업 관리**: `openUIStack`을 활용하여 중첩 팝업 UI 상태 관리 및 `ESC` 키 입력(Cancel Event) 처리.
+- **입력 권한 동기화**: UI 열림/닫힘 상태에 맞춰 마우스 커서 상태(`LockMode`, `visible`) 및 카메라/플레이어 이동 입력 자동 차단/복구.
 
 ---
 
@@ -154,17 +153,21 @@ Assets/
 
 ## 🎮 Controls
 
-| Input         | Action    |
-| ------------- | --------- |
-| W / A / S / D | Move      |
-| Space         | Jump      |
-| Mouse         | Camera    |
-| [Key]         | Inventory |
-| [Key]         | UI / Menu |
+| Input Action       | Action        |
+| ------------------ | ------------- |
+| Move               | W / A / S / D |
+| Jump               | Space         |
+| Look               | Mouse         |
+| Dig                | left_Click    |
+| Cancel / Option UI | ESC           |
 
 ---
 
 ## 🚀 How to Run
+Requirements
+- Unity 6 (6000.0 이상 권장)
+
+- Windows OS
 
 ### Requirements
 
@@ -223,11 +226,8 @@ UI가 닫히면 정상적으로 입력을 복구하도록 개선했습니다.
 
 ## 🔮 Future Improvements
 
-* [ ] [추가 기능]
-* [ ] [시스템 개선]
-* [ ] [성능 최적화]
-* [ ] [UI 개선]
-* [ ] [추가 게임 콘텐츠]
+* [ ] 동굴 몬스터/오브젝트 무작위 스폰: 생성된 동굴 내부 영역을 감지하여 적 및 수집 오브젝트 자동 스폰 로직 연동
+* [ ] 채광 시 딜레이 되는 문제점 수정 예정
 
 ---
 
