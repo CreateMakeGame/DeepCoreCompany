@@ -1,4 +1,4 @@
-# 🎮 DeepCoreCompany
+<img width="386" height="216" alt="Game Video" src="https://github.com/user-attachments/assets/c766e937-0d9d-406c-9a88-edc72566995f" /># 🎮 DeepCoreCompany
 
 > Unity와 C#을 기반으로 개발 중인 3D 채광 프로젝트입니다.
 
@@ -17,17 +17,8 @@
 
 ### Main Gameplay
 
-![Gameplay](docs/images/gameplay.gif)
+<img width="386" height="216" alt="Game Video" src="https://github.com/user-attachments/assets/57d8377c-7d8c-46ef-acd3-82170ca44712" />
 
-### Contract & Slot System
-
-![Inventory](docs/images/inventory.gif)
-
-### UI Interaction
-
-![UI](docs/images/ui.gif)
-
-> Gameplay 영상 및 GIF는 개발 진행에 따라 업데이트할 예정입니다.
 
 ---
 
