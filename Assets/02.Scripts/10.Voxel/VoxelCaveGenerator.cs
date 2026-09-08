@@ -8,6 +8,7 @@ public class VoxelCaveGenerator : MonoBehaviour
     [Header("Seed Settings (시드 설정)")]
     public int seed = 0;
     public bool useRandomSeed = true;
+    [SerializeField] private int currentAppliedSeed; // 인스펙터에서 수정 불가능하게 보이기만 함
 
     private Vector3 noiseOffsetA;
     private Vector3 noiseOffsetB;
@@ -59,16 +60,10 @@ public class VoxelCaveGenerator : MonoBehaviour
 #endif
     }
 
-    private void Start()
-    {
-        InitializeOffsets();
-        UpdateEditorOffsets();
-    }
-
     public void InitializeOffsets()
     {
-        int currentSeed = useRandomSeed ? Random.Range(-999999, 999999) : seed;
-        Random.InitState(currentSeed);
+        currentAppliedSeed = useRandomSeed ? Random.Range(-999999, 999999) : seed;
+        Random.InitState(currentAppliedSeed);
 
         noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
         noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
@@ -91,8 +86,7 @@ public class VoxelCaveGenerator : MonoBehaviour
 
         if (noiseOffsetA == Vector3.zero && noiseOffsetB == Vector3.zero)
         {
-            if (Application.isPlaying) InitializeOffsets();
-            else UpdateEditorOffsets();
+            if (Application.isPlaying) UpdateEditorOffsets();
         }
 
         chamberCenters.Clear(); // 이전에 생성된 방 중심 좌표 초기화

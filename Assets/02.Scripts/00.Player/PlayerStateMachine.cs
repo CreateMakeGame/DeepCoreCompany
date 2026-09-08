@@ -72,12 +72,11 @@ public class PlayerStateMachine : MonoBehaviour
 
     private bool CanDig()
     {
-        // 굴착 중이거나, 키를 누르지 않았거나, 쿨타임 중이면 불가능
-        if (currentState == Dig || !playerController.IsDigPressed || Time.time < lastDigTime + data.digCooldown)
-            return false;
-
-        if (Status != null && !Status.HasStamina())
-            return false;
+        // 가장 가벼운 부울 조건(키 입력 여부)부터 먼저 평가하여 불필요한 연산 차단
+        if (!playerController.IsDigPressed) return false;
+        if (currentState == Dig) return false;
+        if (Time.time < lastDigTime + data.digCooldown) return false;
+        if (Status != null && !Status.HasStamina()) return false;
 
         if (playerController.CameraTransform != null)
         {

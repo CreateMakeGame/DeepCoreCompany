@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class VoxelSurfaceGenerator : MonoBehaviour
 {
+    [Header("Seed Settings (시드 설정)")]
+    public int seed = 0;
+    public bool useRandomSeed = true;
+    [SerializeField] private int currentAppliedSeed; // 인스펙터에서 수정 불가능하게 보이기만 함
+    private Vector2 surfaceOffset;
+
     [Header("Surface Settings")]
     public float baseTerrainHeight = 20f; // 기본 지면 높이
     public float mountainHeight = 30f;    // 산/언덕의 최대 높이
@@ -24,6 +30,13 @@ public class VoxelSurfaceGenerator : MonoBehaviour
         };
 #endif
     }
+    public void InitializeOffsets()
+    {
+        currentAppliedSeed = useRandomSeed ? Random.Range(-999999, 999999) : seed;
+        Random.InitState(currentAppliedSeed);
+
+        surfaceOffset = new Vector2(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+    }
 
     public void GenerateSurface(float[,,] densities, VoxelType[,,] voxelTypes, 
         int width, int height, int depth, float surfaceLevel)
@@ -33,8 +46,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
             for (int z = 0; z <= depth; z++)
             {
                 // PerlinNoise로 표면 높이 계산
-                float surfaceHeight = baseTerrainHeight +
-                    Mathf.PerlinNoise(x * terrainScale, z * terrainScale) * mountainHeight;
+                float surfaceHeight = GetSurfaceHeight(x, z);
 
                 for (int y = 0; y <= height; y++)
                 {
@@ -63,6 +75,8 @@ public class VoxelSurfaceGenerator : MonoBehaviour
     }
     public float GetSurfaceHeight(float x, float z)
     {
-        return baseTerrainHeight + Mathf.PerlinNoise(x * terrainScale, z * terrainScale) * mountainHeight;
+        return baseTerrainHeight + Mathf.PerlinNoise(
+            x * terrainScale + surfaceOffset.x, 
+            z * terrainScale + surfaceOffset.y) * mountainHeight;
     }
 }

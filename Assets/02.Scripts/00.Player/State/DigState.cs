@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class DigState : IState
 {
@@ -13,10 +12,20 @@ public class DigState : IState
     private LayerMask targetLayer = LayerMask.GetMask("Plant");
     private float digRadius = 2.0f; // 굴착 반지름
 
-    public DigState(PlayerStateMachine sm) => stateMachine = sm;
+    public DigState(PlayerStateMachine sm)
+    {
+        stateMachine = sm;
 
+        // 씬 검색 비용 절감을 위해 생성자 시점에 미리 찾아서 캐싱
+        terrain = Object.FindAnyObjectByType<VoxelTerrain>();
+
+    }
     public void Enter()
     {
+        // 씬에 지형이 나중에 생길 경우를 대비해 null 체크 후 1회 추가 갱신
+        if (terrain == null)
+            terrain = Object.FindAnyObjectByType<VoxelTerrain>();
+
         // 상체 레이어(Action Layer)의 애니메이션 재생
         stateMachine.Animator.SetTrigger(stateMachine.AnimationData.DigParameterHash);
 
@@ -27,7 +36,6 @@ public class DigState : IState
         float currentDuration = stateMachine.Data.baseDigDuration / stateMachine.Data.digSpeedMultiplier;
         animationEndTime = Time.time + currentDuration;
 
-        terrain = Object.FindAnyObjectByType<VoxelTerrain>();
         hasDug = false;
         digTime = Time.time + (currentDuration * 0.5f); // 애니메이션 절반쯤에서 땅이 파이도록 설정
     }
@@ -46,12 +54,13 @@ public class DigState : IState
                 Vector3 digPos = stateMachine.CurrerntDigTarget; // 굴착 목표 위치 (상태 간 공유용)
                 terrain.Dig(digPos, digRadius); // 반지름 1로 파기]
 
+                // 식물/오브젝트 파괴
                 Collider[] hitColliders = Physics.OverlapSphere(digPos, digRadius, targetLayer);
-                foreach (var col in hitColliders)
+                for(int i = 0; i < hitColliders.Length; i++)
                 {
+                    Collider col = hitColliders[i];
                     // VoxelTerrain 지형 메쉬 자체는 파괴되면 안 되므로 스킵
                     if (col.GetComponent<VoxelTerrain>() != null) continue;
-
                     // 풀/꽃/바위 등 오브젝트 파괴
                     Object.Destroy(col.gameObject);
                 }
