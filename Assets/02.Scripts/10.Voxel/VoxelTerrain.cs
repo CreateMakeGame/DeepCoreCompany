@@ -41,32 +41,20 @@ public class VoxelTerrain : MonoBehaviour
 
     private bool isUpdatingMesh = false; // 중복 갱신 방지용 플래그
 
-    private void Awake()
+    private async void Awake()
     {
         InitializeComponents();
         if (Application.isPlaying)
         {
             if (surfaceGen != null) surfaceGen.InitializeOffsets(); // 게임 시작 시 지형 생성기 초기화
             if (caveGen != null) caveGen.InitializeOffsets();       // 동굴 오프셋 초기화
-            GenerateTerrain(); // 게임 시작 시 지형 생성
+            await GenerateTerrain(); // 게임 시작 시 지형 생성
         }
     }
-
     void OnEnable()
     {
         InitializeComponents();
         //GenerateTerrain();      // 시작하자마자 한 번 지형을 생성합니다
-    }
-
-    // 유니티 에디터(Inspector)에서 width, height 등의 숫자를 바꿀 때마다 자동으로 실행되는 함수
-    void OnValidate()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.delayCall += () =>
-        {
-            if (this != null) GenerateTerrain();
-        };
-#endif
     }
 
     private void InitializeComponents()
@@ -87,11 +75,14 @@ public class VoxelTerrain : MonoBehaviour
     }
 
     // 지형을 생성하는 전체 과정을 하나로 묶은 함수
-    public void GenerateTerrain()
+    public async Task GenerateTerrain()
     {
+        if(isUpdatingMesh) return; // 이미 메쉬를 갱신 중이면 중복 호출 방지
+        isUpdatingMesh = true;
+
         GenerateDensities(); // 공간의 밀도(노이즈) 결정
-        MarchAllCubes();     // 부드러운 보간을 적용해 삼각형 생성
-        UpdateMesh();        // 실제 메쉬와 충돌체에 적용
+        await Task.Run(() => MarchAllCubes());     // 부드러운 보간을 적용해 삼각형 생성
+        await UpdateMeshAsync();        // 실제 메쉬와 충돌체에 적용
 
         // 지형 및 메쉬 생성 완료 후 동굴 유물 스폰 실행 (densities, surfaceLevel 전달)
         if (itemGen != null && caveGen != null)
@@ -103,6 +94,7 @@ public class VoxelTerrain : MonoBehaviour
         {
             spawner.SpawnPlayer();
         }
+        isUpdatingMesh = false; // 메쉬 갱신 완료
     }
 
     // 공간을 가상의 큐브 격자로 나누고, 각 점에 노이즈를 주어 흙(1)인지 공기(0)인지 결정합니다.
@@ -216,14 +208,6 @@ public class VoxelTerrain : MonoBehaviour
         {
             Instantiate(prefab, spawnPosition, Quaternion.identity);
         }
-        // [참고] 만약 생성된 필드 아이템에 ItemData 정보(가치, 무게 등)를 넘겨주는 스크립트(예: FieldItem)가 붙어있다면 
-        // 아래처럼 넘겨줄 수 있습니다.
-        /*
-        if (spawnedObj.TryGetComponent<FieldItemHolder>(out var holder))
-        {
-            holder.itemData = spawnData.itemData;
-        }
-        */
     }
 
     // 밀도 배열을 전체적으로 훑으면서 어디에 면(삼각형)을 만들지 결정합니다.
@@ -353,6 +337,8 @@ public class VoxelTerrain : MonoBehaviour
         return Vector3.Lerp(p1, p2, t);
     }
 
+    // 계산된 꼭짓점과 삼각형 데이터를 실제 Unity Mesh에 밀어 넣습니다.
+    // 에디터 모드 및 초기화용 동기 메쉬 업데이트
     private async Task UpdateMeshAsync()
     {
         mesh.Clear();
@@ -372,29 +358,6 @@ public class VoxelTerrain : MonoBehaviour
 
             // 최신 API인 Physics.BakeMesh(EntityId, bool)을 백그라운드 스레드에서 수행
             await Task.Run(() => Physics.BakeMesh(entityId, false));
-
-            meshCollider.sharedMesh = null; // 초기화 후 다시 대입해야 즉시 갱신됨
-            meshCollider.sharedMesh = mesh;
-        }
-    }
-
-    // 계산된 꼭짓점과 삼각형 데이터를 실제 Unity Mesh에 밀어 넣습니다.
-    // 에디터 모드 및 초기화용 동기 메쉬 업데이트
-    private void UpdateMesh()
-    {
-        mesh.Clear();
-        mesh.indexFormat = IndexFormat.UInt32;  // 꼭짓점이 많을 경우를 대비해 32비트 인덱스 사용
-
-        mesh.SetVertices(vertices);
-        mesh.SetColors(colors);
-        mesh.SetTriangles(triangles, 0);
-        mesh.RecalculateNormals(); // 조명 효과를 위한 노말 계산
-        mesh.RecalculateBounds();  // 충돌체 계산을 위한 바운딩 박스 갱신
-
-        // 물리 충돌 업데이트 (캐릭터가 밟고 서기 위해 필수)
-        if (meshCollider != null)
-        {
-            Physics.BakeMesh(mesh.GetEntityId(), false);
 
             meshCollider.sharedMesh = null; // 초기화 후 다시 대입해야 즉시 갱신됨
             meshCollider.sharedMesh = mesh;
