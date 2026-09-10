@@ -76,7 +76,7 @@ public class PlayerStateMachine : MonoBehaviour
         if (!playerController.IsDigPressed) return false;
         if (currentState == Dig) return false;
         if (Time.time < lastDigTime + data.digCooldown) return false;
-        if (Status != null && !Status.HasStamina()) return false;
+        if (Status != null && !Status.HasStamina(data.digStaminaCost)) return false;
 
         if (playerController.CameraTransform != null)
         {
@@ -89,6 +89,18 @@ public class PlayerStateMachine : MonoBehaviour
         }
         return false;
     }
+
+    public bool CanRun()
+    {
+        if (!playerController.IsRunPressed) return false;
+        // 이동 하려는 방향 입력이 없으면 false
+        if(playerController.MoveDirection.sqrMagnitude <= 0.01f) return false;
+        // 최소 요구 스태미나(예: 1.0f)가 없으면 달리기 불가
+        if (Status != null && !Status.HasStamina(1.0f)) return false;
+
+        return true;
+    }
+
     // 공통 복귀 로직 (이동 중이면 Walk, 아니면 Idle)
     public void ReturnToLocomotion()
     {

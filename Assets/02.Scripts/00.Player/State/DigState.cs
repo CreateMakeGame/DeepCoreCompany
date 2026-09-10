@@ -10,7 +10,8 @@ public class DigState : IState
     private float digTime;  // 땅이 파이는 시점 기록
 
     private LayerMask targetLayer = LayerMask.GetMask("Plant");
-    private float digRadius = 2.0f; // 굴착 반지름
+    private float digRadius = 2f; // 굴착 반지름
+    private float digStrength = 3f; // 깎아내는 힘을 약간 강화
 
     public DigState(PlayerStateMachine sm)
     {
@@ -26,9 +27,17 @@ public class DigState : IState
         if (terrain == null)
             terrain = Object.FindAnyObjectByType<VoxelTerrain>();
 
+        var status = stateMachine.Status;
+        if (status != null)
+        {
+            if (!status.UseStamina(stateMachine.Data.digStaminaCost))
+            {
+                return;
+            }
+        }
+
         // 상체 레이어(Action Layer)의 애니메이션 재생
         stateMachine.Animator.SetTrigger(stateMachine.AnimationData.DigParameterHash);
-
         // 속도 배율 적용
         stateMachine.Animator.speed = stateMachine.Data.digSpeedMultiplier;
 
@@ -49,10 +58,11 @@ public class DigState : IState
         if (!hasDug && Time.time >= digTime)
         {
             hasDug = true;
+            
             if (terrain != null)
             {
                 Vector3 digPos = stateMachine.CurrerntDigTarget; // 굴착 목표 위치 (상태 간 공유용)
-                terrain.Dig(digPos, digRadius); // 반지름 1로 파기]
+                terrain.Dig(digPos, digRadius, digStrength); // 반지름 1로 파기
 
                 // 식물/오브젝트 파괴
                 Collider[] hitColliders = Physics.OverlapSphere(digPos, digRadius, targetLayer);
@@ -66,7 +76,6 @@ public class DigState : IState
                 }
             }
         }
-
 
         // 애니메이션 시간이 다 되면 복귀
         if (Time.time >= animationEndTime)

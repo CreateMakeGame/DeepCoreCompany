@@ -123,7 +123,7 @@ public class VoxelTerrain : MonoBehaviour
     }
 
     // 플레이어의 DigState에서 호출되는 함수
-    public async void Dig(Vector3 worldPos, float radius)
+    public async void Dig(Vector3 worldPos, float radius, float digStrength = 1.0f)
     {
         if (isUpdatingMesh) return; // 이미 메쉬를 갱신 중이면 중복 호출 방지
 
@@ -163,19 +163,34 @@ public class VoxelTerrain : MonoBehaviour
 
                         // 중심점과의 거리를 계산하여 구 안에 있는지 확인
                         float dist = Vector3.Distance(new Vector3(x, y, z), new Vector3(centerX, centerY, centerZ));
+                        
                         if (dist <= radius)
                         {
-                            // 아직 파괴되지 않은 땅(밀도 > surfaceLevel)이었는지 확인
-                            if (densities[x, y, z] > surfaceLevel)
-                            {
-                                // 땅을 파냈을 때 연결된 ItemData의 fieldPrefab 스폰
-                                SpawnItemIfExist(voxelTypes[x, y, z], new Vector3(x, y, z) + transform.position - offset);
-                                // 파내졌으므로 물질 상태를 공기(Air)로 변경
-                                voxelTypes[x, y, z] = VoxelType.Air;
-                            }
+                            // 중심(0)일수록 1에 가깝고, 외각(radius)일수록 0에 가까움
+                            float noromalizedDist = dist / radius; // 0~1로 정규화
+                            float falloff = Mathf.SmoothStep(1f, 0f, noromalizedDist); // 부드러운 감쇠 적용
 
-                            densities[x, y, z] = 0f;
-                            isChanged = true; // 밀도 변경됨
+                            // digStrength는 1로 고정하여, falloff에 따라 밀도 제거량을 결정
+                            float removeAmount = digStrength * falloff;
+
+                            // 아직 파괴되지 않은 땅(밀도 > 0)이었는지 확인
+                            if (densities[x, y, z] > -1.0f)
+                            {
+                                float oldDensity = densities[x, y, z];
+
+                                densities[x, y, z] = Mathf.Max(-1.0f, densities[x, y, z] - removeAmount); // 밀도 감소
+
+                                if (oldDensity > surfaceLevel && densities[x, y, z] <= surfaceLevel)
+                                {
+                                    SpawnItemIfExist(voxelTypes[x, y, z], voxelWorldPos);
+                                    voxelTypes[x, y, z] = VoxelType.Air;
+                                }
+                                // 실제로 밀도 변경이 일어났다면 플래그 설정
+                                if (!Mathf.Approximately(oldDensity, densities[x, y, z]))
+                                {
+                                    isChanged = true;
+                                }
+                            }
                         }
                     }
                 }

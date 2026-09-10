@@ -24,12 +24,11 @@ public class RunState : IState
             return;
         }
 
-        if(!stateMachine.playerController.IsRunPressed)
+        if (!stateMachine.CanRun())
         {
             stateMachine.ChangeState(stateMachine.Walk);
             return;
         }
-
         // 점프 입력
         if (stateMachine.playerController.IsJumpPressed && stateMachine.Mover.IsGrounded())
         {

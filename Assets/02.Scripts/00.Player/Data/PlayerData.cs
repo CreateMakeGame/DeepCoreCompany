@@ -23,6 +23,7 @@ public class PlayerData : ScriptableObject
     public LayerMask groundLayer;
 
     [Header("Digging")]
+    public float digStaminaCost = 10f;         // 굴착 시 소모되는 스테미너
     public float baseDigDuration = 1.0f;    // 굴착 애니메이션의 기본 지속 시간
     public float digSpeedMultiplier = 1.0f; // 굴착 애니메이션 속도 조절을 위한 배수
     public float digCooldown = 1.0f;        // 굴착 사이의 대기 시간

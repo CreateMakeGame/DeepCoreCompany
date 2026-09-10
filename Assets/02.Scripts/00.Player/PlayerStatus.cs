@@ -79,10 +79,10 @@ public class PlayerStatus : MonoBehaviour
     {
         if (stateMachine == null || stateMachine.Data == null) return;
 
-        bool isSprinting = stateMachine.CurrentState == stateMachine.Run;
-        bool isMining = stateMachine.CurrentState == stateMachine.Dig;
+        bool isSprinting = stateMachine.CurrentState == stateMachine.Run
+            || stateMachine.CurrentState == stateMachine.Jump; // 달리기 또는 점프 상태에서 스테미너 소모
 
-        if (isSprinting || isMining)
+        if (isSprinting)
         {
             CurrentStamina -= stateMachine.Data.staminaDrainRate * Time.deltaTime;
             CurrentStamina = Mathf.Clamp(CurrentStamina, 0f, stateMachine.Data.maxStamina);
@@ -103,6 +103,15 @@ public class PlayerStatus : MonoBehaviour
         }
     }
 
+    public bool UseStamina(float amount)
+    {
+        if(CurrentStamina < amount) return false;
+
+        CurrentStamina = Mathf.Clamp(CurrentStamina - amount, 0f, stateMachine.Data.maxStamina);
+        regenTimer = 0f; // 스테미너 사용 시 회복 대기 시간 초기화
+        return true;
+    }
+
     private void UpdateStatusUI()
     {
         if (stateMachine == null || stateMachine.Data == null) return;
@@ -121,7 +130,10 @@ public class PlayerStatus : MonoBehaviour
     }
 
     // 스테미너가 남아있는지 확인
-    public bool HasStamina() => CurrentStamina > 0f;
+    public bool HasStamina(float requiredAmount)
+    {
+        return CurrentStamina >= requiredAmount;
+    }
 
     // HP 감소 (데미지 처리)
     public void TakeDamage(float amount)

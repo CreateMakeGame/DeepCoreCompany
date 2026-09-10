@@ -22,7 +22,7 @@ public class JumpState : IState
             // sqrMagnitude로 비교하여 입력이 있으면 Move 상태, 없으면 Idle 상태로 전환
             if (stateMachine.playerController.MoveDirection.sqrMagnitude > 0.01f)
             {
-                if(stateMachine.playerController.IsRunPressed)
+                if (stateMachine.CanRun())  // 달리기 스테미나 잔여량 체크하기
                     stateMachine.ChangeState(stateMachine.Run);
                 else
                     stateMachine.ChangeState(stateMachine.Walk);
