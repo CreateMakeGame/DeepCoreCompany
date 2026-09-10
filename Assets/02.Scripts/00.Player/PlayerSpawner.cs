@@ -7,6 +7,8 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private VoxelSurfaceGenerator surfaceGenerator;
     [SerializeField] private GameObject playerPrefab;
 
+    private bool hasSpawned = false;
+
     private void Awake()
     {
         if (terrain == null) terrain = FindAnyObjectByType<VoxelTerrain>();
@@ -15,7 +17,10 @@ public class PlayerSpawner : MonoBehaviour
 
     public void SpawnPlayer()
     {
+        if (hasSpawned) return; // 이미 스폰된 경우 중복 스폰 방지
         if (terrain == null || surfaceGenerator == null || playerPrefab == null) return;
+
+        hasSpawned = true;
 
         float spawnX = terrain.width / 2f;
         float spawnZ = terrain.depth / 2f;
@@ -42,5 +47,11 @@ public class PlayerSpawner : MonoBehaviour
                 CameraManager.Instance.BindPlayerCamera();
             }
         }
+    }
+
+    // 씬 전환/재시작 시 플래그 리셋이 필요한 경우를 위한 메서드
+    public void ResetSpawner()
+    {
+        hasSpawned = false;
     }
 }

@@ -55,7 +55,7 @@ public class VoxelTerrain : MonoBehaviour
     void OnEnable()
     {
         InitializeComponents();
-        GenerateTerrain();      // 시작하자마자 한 번 지형을 생성합니다
+        //GenerateTerrain();      // 시작하자마자 한 번 지형을 생성합니다
     }
 
     // 유니티 에디터(Inspector)에서 width, height 등의 숫자를 바꿀 때마다 자동으로 실행되는 함수
