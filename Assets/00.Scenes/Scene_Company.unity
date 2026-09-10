@@ -170,14 +170,6 @@ PrefabInstance:
       propertyPath: axisController
       value: 
       objectReference: {fileID: 1368420861}
-    - target: {fileID: 5546460034815775548, guid: 879a718179c99914db6ec95e0a7563ee, type: 3}
-      propertyPath: verticalSensitivity
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 5546460034815775548, guid: 879a718179c99914db6ec95e0a7563ee, type: 3}
-      propertyPath: horizontalSensitivity
-      value: 6
-      objectReference: {fileID: 0}
     - target: {fileID: 5724300317220836504, guid: 879a718179c99914db6ec95e0a7563ee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 914.1482

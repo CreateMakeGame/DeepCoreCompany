@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
-
 
 [ExecuteAlways] // 에디터에서도 실행되도록 설정
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
@@ -16,14 +16,13 @@ public class VoxelTerrain : MonoBehaviour
     public int height = 100;                // Y축 전체 높이 공간
     public int depth = 100;                 // Z축 길이 (세로)
     public float surfaceLevel = 0.5f;       // 땅과 공기를 구분하는 기준값
-   
-    [Header("Dig Boundary Settings")]
-    public bool useDigBounds = true;                            // 굴착 제한 적용 여부
-    public Vector3 digZoneOffset = Vector3.zero;                // 굴착 제한 영역의 오프셋
-    public Vector3 digZoneSize = new Vector3(10f, 20f, 10f);    // 굴착 가능 영역 크기
 
-    private float[,,] densities;                            // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
-    private VoxelType[,,] voxelTypes;                       // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
+    [Header("Dig Boundary Settings")]
+    public bool useDigBounds = true;                                // 굴착 제한 적용 여부
+    public Vector3 digZoneOffset = Vector3.zero;                    // 굴착 제한 영역의 오프셋
+    public Vector3 digZoneSize = new Vector3(10f, 20f, 10f);        // 굴착 가능 영역 크기
+    private float[,,] densities;                                    // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
+    private VoxelType[,,] voxelTypes;                               // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
 
     // 메쉬 생성용   
     private readonly List<Vector3> vertices = new List<Vector3>(10000);   // 만들어질 메쉬의 꼭짓점들
@@ -31,7 +30,7 @@ public class VoxelTerrain : MonoBehaviour
     private readonly List<int> triangles = new List<int>(30000);          // 꼭짓점을 이어붙일 삼각형의 순서
 
     private readonly Dictionary<Vector3Int, int> vertexIndexMap = new Dictionary<Vector3Int, int>(10000);   // 동일한 위치의 버텍스를 재사용하기 위한 맵
-    
+
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
     private Mesh mesh;
@@ -40,12 +39,14 @@ public class VoxelTerrain : MonoBehaviour
     [SerializeField] private VoxelCaveGenerator caveGen;            // 동굴 생성기
     [SerializeField] private VoxelItemGenerator itemGen;            // 매장 아이템 생성기
 
+    private bool isUpdatingMesh = false; // 중복 갱신 방지용 플래그
+
     private void Awake()
     {
         InitializeComponents();
-        if(Application.isPlaying)
+        if (Application.isPlaying)
         {
-            if(surfaceGen != null) surfaceGen.InitializeOffsets(); // 게임 시작 시 지형 생성기 초기화
+            if (surfaceGen != null) surfaceGen.InitializeOffsets(); // 게임 시작 시 지형 생성기 초기화
             if (caveGen != null) caveGen.InitializeOffsets();       // 동굴 오프셋 초기화
             GenerateTerrain(); // 게임 시작 시 지형 생성
         }
@@ -67,6 +68,7 @@ public class VoxelTerrain : MonoBehaviour
         };
 #endif
     }
+
     private void InitializeComponents()
     {
         if (meshFilter == null) meshFilter = GetComponent<MeshFilter>();
@@ -75,6 +77,7 @@ public class VoxelTerrain : MonoBehaviour
         {
             mesh = new Mesh { name = "Voxel Terrain Mesh", indexFormat = IndexFormat.UInt32 };
         }
+
         meshFilter.sharedMesh = mesh; // MeshFilter에 메쉬 할당
 
         // 서브 컴포넌트 초기화
@@ -95,6 +98,11 @@ public class VoxelTerrain : MonoBehaviour
         {
             itemGen.SpawnCaveArtifacts(densities, caveGen.GetChamberCenters(), width, height, depth, surfaceLevel);
         }
+        PlayerSpawner spawner = FindAnyObjectByType<PlayerSpawner>();
+        if (spawner != null)
+        {
+            spawner.SpawnPlayer();
+        }
     }
 
     // 공간을 가상의 큐브 격자로 나누고, 각 점에 노이즈를 주어 흙(1)인지 공기(0)인지 결정합니다.
@@ -103,9 +111,9 @@ public class VoxelTerrain : MonoBehaviour
         // 큐브의 '모서리'를 기준으로 계산하므로 배열 크기는 width + 1 입니다.
         densities = new float[width + 1, height + 1, depth + 1];
         voxelTypes = new VoxelType[width + 1, height + 1, depth + 1];    // 각 점의 VoxelType을 저장하는 배열
-        
+
         // 표면 지형 생성(필수)
-        if(surfaceGen != null)
+        if (surfaceGen != null)
         {
             surfaceGen.GenerateSurface(densities, voxelTypes, width, height, depth, surfaceLevel);
         }
@@ -116,16 +124,17 @@ public class VoxelTerrain : MonoBehaviour
             caveGen.ApplyCaves(densities, voxelTypes, width, height, depth, surfaceGen);
         }
 
-        if(itemGen != null)
+        if (itemGen != null)
         {
             itemGen.ApplyItemVoxels(densities, voxelTypes, width, height, depth, surfaceLevel, surfaceGen);
         }
-
     }
-   
+
     // 플레이어의 DigState에서 호출되는 함수
-    public void Dig(Vector3 worldPos, float radius)
+    public async void Dig(Vector3 worldPos, float radius)
     {
+        if (isUpdatingMesh) return; // 이미 메쉬를 갱신 중이면 중복 호출 방지
+
         // 메쉬를 중앙으로 옮겼으므로, 인덱스를 찾을 때는 반대로 오프셋을 더해줘야 합니다.
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
 
@@ -149,7 +158,7 @@ public class VoxelTerrain : MonoBehaviour
             {
                 for (int z = centerZ - r; z <= centerZ + r; z++)
                 {
-                    if( y <= bedrockLimit) continue; // 최하단 암반은 파내지 않음
+                    if (y <= bedrockLimit) continue; // 최하단 암반은 파내지 않음
 
                     // 배열 범위를 벗어나지 않도록 안전 검사
                     if (x >= 0 && x <= width && y >= 0 && y <= height && z >= 0 && z <= depth)
@@ -159,6 +168,7 @@ public class VoxelTerrain : MonoBehaviour
                         {
                             continue; // 굴착 제한 영역 밖이면 패스
                         }
+
                         // 중심점과의 거리를 계산하여 구 안에 있는지 확인
                         float dist = Vector3.Distance(new Vector3(x, y, z), new Vector3(centerX, centerY, centerZ));
                         if (dist <= radius)
@@ -171,6 +181,7 @@ public class VoxelTerrain : MonoBehaviour
                                 // 파내졌으므로 물질 상태를 공기(Air)로 변경
                                 voxelTypes[x, y, z] = VoxelType.Air;
                             }
+
                             densities[x, y, z] = 0f;
                             isChanged = true; // 밀도 변경됨
                         }
@@ -178,11 +189,19 @@ public class VoxelTerrain : MonoBehaviour
                 }
             }
         }
+
         // 밀도가 변경되었으니 메쉬를 다시 계산하고 업데이트
         if (isChanged)
         {
-            MarchAllCubes();
-            UpdateMesh();
+            isUpdatingMesh = true;
+
+            // 1. CPU 연산을 백그라운드 스레드에서 처리
+            await Task.Run(() => MarchAllCubes());
+
+            // 2. 비동기 물리 베이킹 및 메쉬 반영
+            await UpdateMeshAsync();
+
+            isUpdatingMesh = false;
         }
     }
 
@@ -258,6 +277,7 @@ public class VoxelTerrain : MonoBehaviour
             AddSharedVertex(GetEdgeCenter(x, y, z, edge2));
         }
     }
+
     // 동일한 위치의 버텍스를 재사용하여 매끈한 스무스 셰이딩을 가능하게 만드는 함수
     private void AddSharedVertex(Vector3 position)
     {
@@ -294,10 +314,11 @@ public class VoxelTerrain : MonoBehaviour
             Color vertColor = (soilGradient != null) ? soilGradient.Evaluate(normalizedDepth) : Color.white;
             colors.Add(vertColor);
 
-            vertexIndexMap.Add(key , newindex);
+            vertexIndexMap.Add(key, newindex);
             triangles.Add(newindex);
         }
     }
+
     // 두 꼭짓점 사이의 중심 좌표를 구하는 함수
     private Vector3 GetEdgeCenter(int x, int y, int z, int edge)
     {
@@ -332,8 +353,33 @@ public class VoxelTerrain : MonoBehaviour
         return Vector3.Lerp(p1, p2, t);
     }
 
+    private async Task UpdateMeshAsync()
+    {
+        mesh.Clear();
+        mesh.indexFormat = IndexFormat.UInt32;  // 꼭짓점이 많을 경우를 대비해 32비트 인덱스 사용
+
+        mesh.SetVertices(vertices);
+        mesh.SetColors(colors);
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateNormals(); // 조명 효과를 위한 노말 계산
+        mesh.RecalculateBounds();  // 충돌체 계산을 위한 바운딩 박스 갱신
+
+        // 물리 충돌 업데이트 (캐릭터가 밟고 서기 위해 필수)
+        if (meshCollider != null)
+        {
+            // 메인 스레드에서 미리 GetEntityId() 취득 (스레드 안전)
+            var entityId = mesh.GetEntityId();
+
+            // 최신 API인 Physics.BakeMesh(EntityId, bool)을 백그라운드 스레드에서 수행
+            await Task.Run(() => Physics.BakeMesh(entityId, false));
+
+            meshCollider.sharedMesh = null; // 초기화 후 다시 대입해야 즉시 갱신됨
+            meshCollider.sharedMesh = mesh;
+        }
+    }
 
     // 계산된 꼭짓점과 삼각형 데이터를 실제 Unity Mesh에 밀어 넣습니다.
+    // 에디터 모드 및 초기화용 동기 메쉬 업데이트
     private void UpdateMesh()
     {
         mesh.Clear();

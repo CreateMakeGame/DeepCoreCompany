@@ -155,6 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemObject
   itemData: {fileID: 11400000, guid: 1316d9bab711e4141bbe74044fc46385, type: 2}
+  isBuriedOnSpawn: 1
 --- !u!114 &8470313039204017892
 MonoBehaviour:
   m_ObjectHideFlags: 0

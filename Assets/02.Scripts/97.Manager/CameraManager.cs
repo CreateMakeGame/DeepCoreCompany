@@ -14,28 +14,34 @@ public class CameraManager : Singleton<CameraManager>
     protected override void Awake()
     {
         base.Awake(); // Singleton 초기화
-        if (axisController == null)
-        {
-            axisController = GetComponent<CinemachineInputAxisController>();
-        }
-        ApplySensitivity();
     }
 
     private void Start()
     {
-        if (axisController == null)
-        {
-            axisController = GetComponent<CinemachineInputAxisController>();
-        }
-        ApplySensitivity();
+        BindPlayerCamera();
     }
 
-    private void OnValidate()
+    /// <summary>
+    /// 스폰된 플레이어의 1st Person Vcam에서 CinemachineInputAxisController를 찾아 연결합니다.
+    /// </summary>
+    public void BindPlayerCamera()
     {
+        // 씬 내부(플레이어 프리팹 자식)의 CinemachineInputAxisController 탐색
+        axisController = FindAnyObjectByType<CinemachineInputAxisController>();
+
         if (axisController != null)
         {
             ApplySensitivity();
         }
+        else
+        {
+            Debug.LogWarning("[CameraManager] CinemachineInputAxisController를 찾지 못했습니다.");
+        }
+    }
+    public void RegisterPlayerCamera(CinemachineInputAxisController controller)
+    {
+        axisController = controller;
+        ApplySensitivity();
     }
 
     /// <summary>

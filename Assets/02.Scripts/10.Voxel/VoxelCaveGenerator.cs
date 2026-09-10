@@ -6,7 +6,6 @@ using Random = UnityEngine.Random;
 public class VoxelCaveGenerator : MonoBehaviour
 {
     [Header("Seed Settings (시드 설정)")]
-    public int seed = 0;
     public bool useRandomSeed = true;
     [SerializeField] private int currentAppliedSeed; // 인스펙터에서 수정 불가능하게 보이기만 함
 
@@ -62,7 +61,14 @@ public class VoxelCaveGenerator : MonoBehaviour
 
     public void InitializeOffsets()
     {
-        currentAppliedSeed = useRandomSeed ? Random.Range(-999999, 999999) : seed;
+        if(useRandomSeed)
+        {
+            currentAppliedSeed = Random.Range(-999999, 999999);
+        }
+        else
+        {
+            currentAppliedSeed = 0; // 기본 시드값
+        }
         Random.InitState(currentAppliedSeed);
 
         noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
@@ -72,7 +78,7 @@ public class VoxelCaveGenerator : MonoBehaviour
 
     private void UpdateEditorOffsets()
     {
-        Random.InitState(seed);
+        Random.InitState(currentAppliedSeed);
 
         noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
         noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));

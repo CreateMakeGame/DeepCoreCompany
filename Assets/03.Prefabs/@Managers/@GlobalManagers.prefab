@@ -250,5 +250,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraManager
   axisController: {fileID: 0}
-  horizontalSensitivity: 5
-  verticalSensitivity: 5
+  horizontalSensitivity: 6
+  verticalSensitivity: 6
