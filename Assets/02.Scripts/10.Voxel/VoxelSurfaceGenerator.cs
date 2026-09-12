@@ -16,19 +16,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
     [Header("Bedrock Settings (최하단 암반 / 추락 방지)")]
     [Tooltip("맵 최하단에 절대 파지지 않는 땅의 두께 (플레이어 맵 밖 추락 방지)")]
     public int bottomBedrockHeight = 3;
-
-    private void OnValidate()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.delayCall += () =>
-        {
-            if (this != null && gameObject.activeInHierarchy)
-            {
-                GetComponent<VoxelTerrain>()?.GenerateTerrain();
-            }
-        };
-#endif
-    }
+ 
     public void InitializeOffsets()
     {
         if(useRandomSeed)

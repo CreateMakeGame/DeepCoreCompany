@@ -5,7 +5,7 @@ public class DigState : IState
     private PlayerStateMachine stateMachine;
     private float animationEndTime;
 
-    private VoxelTerrain terrain;
+    private VoxelWorld terrain;
     private bool hasDug;    // 한 번만 파게 하기 위한 플래그
     private float digTime;  // 땅이 파이는 시점 기록
 
@@ -18,14 +18,14 @@ public class DigState : IState
         stateMachine = sm;
 
         // 씬 검색 비용 절감을 위해 생성자 시점에 미리 찾아서 캐싱
-        terrain = Object.FindAnyObjectByType<VoxelTerrain>();
+        terrain = Object.FindAnyObjectByType<VoxelWorld>();
 
     }
     public void Enter()
     {
         // 씬에 지형이 나중에 생길 경우를 대비해 null 체크 후 1회 추가 갱신
         if (terrain == null)
-            terrain = Object.FindAnyObjectByType<VoxelTerrain>();
+            terrain = Object.FindAnyObjectByType<VoxelWorld>();
 
         var status = stateMachine.Status;
         if (status != null)

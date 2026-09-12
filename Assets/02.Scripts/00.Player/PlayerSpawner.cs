@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerSpawner : MonoBehaviour
 {
-    [SerializeField] private VoxelTerrain terrain;
+    [SerializeField] private VoxelWorld world;
     [SerializeField] private VoxelSurfaceGenerator surfaceGenerator;
     [SerializeField] private GameObject playerPrefab;
 
@@ -11,25 +11,25 @@ public class PlayerSpawner : MonoBehaviour
 
     private void Awake()
     {
-        if (terrain == null) terrain = FindAnyObjectByType<VoxelTerrain>();
+        if (world == null) world = FindAnyObjectByType<VoxelWorld>();
         if (surfaceGenerator == null) surfaceGenerator = FindAnyObjectByType<VoxelSurfaceGenerator>();
     }
 
     public void SpawnPlayer()
     {
         if (hasSpawned) return; // 이미 스폰된 경우 중복 스폰 방지
-        if (terrain == null || surfaceGenerator == null || playerPrefab == null) return;
+        if (world == null || surfaceGenerator == null || playerPrefab == null) return;
 
         hasSpawned = true;
 
-        float spawnX = terrain.width / 2f;
-        float spawnZ = terrain.depth / 2f;
+        float spawnX = world.width / 2f;
+        float spawnZ = world.depth / 2f;
 
         float surfaceY = surfaceGenerator.GetSurfaceHeight(spawnX, spawnZ);
         // 월드 좌표로 변환하기 전에 지형의 중심으로 잡습니다.
-        Vector3 worldOffset = new Vector3(terrain.width / 2f, terrain.height / 2f, terrain.depth / 2f);
+        Vector3 worldOffset = new Vector3(world.width / 2f, world.height / 2f, world.depth / 2f);
         // 플레이어가 땅에 묻히는 것을 방지하기 위해 Y 좌표를 1.5f만큼 올립니다.
-        Vector3 spawnPosition = new Vector3(spawnX, surfaceY + 1.5f, spawnZ) + terrain.transform.position - worldOffset;
+        Vector3 spawnPosition = new Vector3(spawnX, surfaceY + 1.5f, spawnZ) + world.transform.position - worldOffset;
 
         GameObject spawnedPlayer = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
 

@@ -46,19 +46,6 @@ public class VoxelCaveGenerator : MonoBehaviour
     private List<Vector3Int> chamberCenters = new List<Vector3Int>();
     public List<Vector3Int> GetChamberCenters() => chamberCenters;
 
-    private void OnValidate()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.delayCall += () =>
-        {
-            if (this != null && gameObject.activeInHierarchy)
-            {
-                GetComponent<VoxelTerrain>()?.GenerateTerrain();
-            }
-        };
-#endif
-    }
-
     public void InitializeOffsets()
     {
         if(useRandomSeed)
