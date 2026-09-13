@@ -70,7 +70,7 @@ public class DigState : IState
                 {
                     Collider col = hitColliders[i];
                     // VoxelTerrain 지형 메쉬 자체는 파괴되면 안 되므로 스킵
-                    if (col.GetComponent<VoxelTerrain>() != null) continue;
+                    if (col.GetComponent<VoxelWorld>() != null) continue;
                     // 풀/꽃/바위 등 오브젝트 파괴
                     Object.Destroy(col.gameObject);
                 }

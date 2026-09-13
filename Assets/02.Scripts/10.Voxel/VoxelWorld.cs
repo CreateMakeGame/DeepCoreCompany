@@ -96,6 +96,9 @@ public class VoxelWorld : Singleton<VoxelWorld>
                     GameObject chunkObj = new GameObject($"Chunk_{x}_{y}_{z}");
                     chunkObj.transform.SetParent(chunkContainer);
 
+                    // 부모(VoxelWorld)의 레이어를 청크 오브젝트에 그대로 적용
+                    chunkObj.layer = gameObject.layer;
+
                     var renderer = chunkObj.AddComponent<MeshRenderer>();
                     renderer.sharedMaterial = terrainMaterial;
 
@@ -104,8 +107,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
                     chunks[x, y, z] = chunk;
 
                     // 병렬 생성 예약
-                    updateTasks.Add(chunk.UpdateChunkAsync());
-                }
+updateTasks.Add(chunk.UpdateChunkAsync());                }
             }
         }
 
@@ -125,6 +127,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
     // 플레이어의 DigState에서 호출되는 함수
     public async void Dig(Vector3 worldPos, float radius, float digStrength = 1.0f)
     {
+        int digCount = 0; // 디버깅용 카운터
         // 메쉬를 중앙으로 옮겼으므로, 인덱스를 찾을 때는 반대로 오프셋을 더해줘야 합니다.
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
 
@@ -179,6 +182,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
                                 if (!Mathf.Approximately(oldDensity, densities[x, y, z]))
                                 {
                                     AddDirtyChunks(x, y, z, dirtyChunks);
+                                    digCount++;
                                 }
                             }
                         }
@@ -186,6 +190,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
                 }
             }
         }
+
         // 변경된 1~4개 청크만 비동기 갱신
         List<Task> refreshTasks = new List<Task>();
         foreach (var chunk in dirtyChunks)
@@ -249,5 +254,16 @@ public class VoxelWorld : Singleton<VoxelWorld>
         return densities[Mathf.Clamp(x, 0, width), Mathf.Clamp(y, 0, height), Mathf.Clamp(z, 0, depth)];
     }
     public float GetSurfaceHeight(float x, float z) => surfaceGen != null ? surfaceGen.GetSurfaceHeight(x, z) : height;
+
+    //// VoxelWorld.cs 클래스 내부에 추가
+    //private void OnDrawGizmosSelected()
+    //{
+    //    if (useDigBounds)
+    //    {
+    //        Gizmos.color = Color.green;
+    //        // 굴착 가능 영역을 녹색 와이어프레임 상자로 표시
+    //        Gizmos.DrawWireCube(transform.position + digZoneOffset, digZoneSize);
+    //    }
+    //}
 }
 

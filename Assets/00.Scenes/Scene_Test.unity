@@ -491,8 +491,8 @@ MonoBehaviour:
   depth: 96
   surfaceLevel: 0.5
   useDigBounds: 1
-  digZoneOffset: {x: 0, y: 0, z: 0}
-  digZoneSize: {x: 10, y: 20, z: 10}
+  digZoneOffset: {x: 1, y: 1, z: 1}
+  digZoneSize: {x: 94, y: 94, z: 94}
   terrainMaterial: {fileID: 2100000, guid: 24d588513b2072d4e95e12e3c03b5ee6, type: 2}
   surfaceGen: {fileID: 1113873975}
   caveGen: {fileID: 1113873976}
