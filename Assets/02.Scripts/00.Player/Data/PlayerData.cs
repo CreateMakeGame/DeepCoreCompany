@@ -6,7 +6,7 @@ public class PlayerData : ScriptableObject
     public float maxHp = 100f;
     public float maxStamina = 100f;
     public float staminaDrainRate = 20f;    // 초당 스테미너 소모량
-    public float staminaRegenRate = 10f;    // 초당 스테미너 회복량
+    public float staminaRegenRate = 20f;    // 초당 스테미너 회복량
     public float regenDelay = 2f;           // 스테미너 회복 시작 전 대기 시간
 
     [Header("Move Speeds")]

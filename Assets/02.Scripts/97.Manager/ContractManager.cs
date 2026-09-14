@@ -118,6 +118,6 @@ public class ContractManager : MonoBehaviour
             availableContracts.Add(newContract);
         }
 
-        Debug.Log($"게시판 갱신 완료! 진짜 SO 데이터 기반 의뢰서 생성됨.");
+        //Debug.Log($"게시판 갱신 완료! 진짜 SO 데이터 기반 의뢰서 생성됨.");
     }
 }

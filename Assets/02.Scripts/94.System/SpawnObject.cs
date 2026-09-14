@@ -24,45 +24,50 @@ public class SpawnItem
 
 public class SpawnObject : MonoBehaviour
 {
+    [Header("복셀 시스템 참조")]
+    [SerializeField] private VoxelWorld voxelWorld;
+    [SerializeField] private VoxelSurfaceGenerator surfaceGenerator;
+    [SerializeField] private float surfaceLevel = 0.5f;
+
     [Header("스폰 대상")]
     [SerializeField] private GameObject midSpawnObject;
     [SerializeField] private List<SpawnItem> spawnItems = new List<SpawnItem>();
 
     [Header("지형 및 스폰 설정")]
-    [SerializeField] private Vector3 mapSize = new Vector3(100f, 50f, 100f);
+    //[SerializeField] private Vector3 mapSize = new Vector3(100f, 50f, 100f);
     [SerializeField] private float maxSlopeAngle = 35f;     // 스폰 가능한 최대 경사각
-    [SerializeField] private LayerMask terrainLayer;        // 지형(Voxel) 레이어
     [SerializeField] private float spawnYOffset = 0.1f;     // 땅속 매립 방지용 오프셋
+
+    //[SerializeField] private LayerMask terrainLayer;        // 지형(Voxel) 레이어
 
     private Transform spawnRootContainer;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    
+
+    public void StartSpawning()
     {
         spawnRootContainer = GetOrCreateContainer("_SpawnedObjects_Root", transform);
+
         SpawnMidObject();
         SpawnAllItems();
     }
 
-    // 맵 중앙에 오브젝트 1개 배치
+    // 맵 중앙(VoxelWorld의 월드 중앙)에 1개 배치
     private void SpawnMidObject()
     {
         if (midSpawnObject == null) return;
 
-        Vector3 centerPos = transform.position;
+        Vector3 worldCenter = voxelWorld.transform.position;
+        Vector3? spawnPos = GetTerrainPositionAt(worldCenter.x, worldCenter.z);
 
-        float rayStartY = Mathf.Max(mapSize.y, 120f);
-        Vector3 centerRayStart = new Vector3(centerPos.x, transform.position.y + rayStartY, centerPos.z);
-
-        if (Physics.Raycast(centerRayStart, Vector3.down, out RaycastHit hit, rayStartY * 2f, terrainLayer))
+        if (spawnPos.HasValue)
         {
-            // 3. 땅속 매립 방지 오프셋 적용
-            Vector3 spawnPos = hit.point + Vector3.up * spawnYOffset;
-
             Transform midContainer = GetOrCreateContainer("[Group] MidObject", spawnRootContainer);
-            Instantiate(midSpawnObject, spawnPos, Quaternion.identity, transform);
+            Instantiate(midSpawnObject, spawnPos.Value, Quaternion.identity, midContainer);
         }
     }
+
     private void SpawnAllItems()
     {
         if (spawnItems == null || spawnItems.Count == 0) return;
@@ -130,37 +135,54 @@ public class SpawnObject : MonoBehaviour
     // 맵 전체 범위 (-Half ~ +Half)에서 임의의 지표면 좌표 탐색
     private Vector3? GetRandomTerrainPosition()
     {
-        float randomX = Random.Range(-mapSize.x * 0.5f, mapSize.x * 0.5f);
-        float randomZ = Random.Range(-mapSize.z * 0.5f, mapSize.z * 0.5f);
+        Vector3 worldCenter = voxelWorld.transform.position;
+        float halfWidth = voxelWorld.width * 0.5f;
+        float halfDepth = voxelWorld.depth * 0.5f;
 
-        Vector3 rayStart = transform.position + new Vector3(randomX, mapSize.y, randomZ);
-        return RaycastToTerrain(rayStart);
+        float randomX = Random.Range(-halfWidth, halfWidth) + worldCenter.x;
+        float randomZ = Random.Range(-halfWidth, halfWidth) + worldCenter.z;
+
+        return GetTerrainPositionAt(randomX, randomZ);
     }
     // 특정 월드 X, Z 좌표 상공에서 지표면 높이 탐색
     private Vector3? GetTerrainPositionAt(float worldX, float worldZ)
     {
-        float rayStartY = Mathf.Max(mapSize.y, 120f);
-        Vector3 rayStart = new Vector3(worldX, transform.position.y + rayStartY, worldZ);
-        return RaycastToTerrain(rayStart);
-    }
+        if (surfaceGenerator == null || voxelWorld == null) return null;
 
+        Vector3 worldCenter = voxelWorld.transform.position;
+        Vector3 worldOffset = voxelWorld.GetWorldOffset(); // (width / 2, height / 2, depth / 2)
 
-    // 공통 Raycast 처리 함수
-    private Vector3? RaycastToTerrain(Vector3 rayStart)
-    {
-        float rayDistance = Mathf.Max(mapSize.y * 2f, 240f);
+        // 월드 좌표를 VoxelWorld 내부 그리드 인덱스(0 ~ width/depth)로 환산
+        float gridX = (worldX - worldCenter.x) + worldOffset.x;
+        float gridZ = (worldZ - worldCenter.z) + worldOffset.z;
 
-        if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, rayDistance, terrainLayer))
+        // 복셀 배열 바깥 영역 예외 처리
+        if (gridX < 0 || gridX > voxelWorld.width || gridZ < 0 || gridZ > voxelWorld.depth)
+            return null;
+
+        // 1. 표면 높이 계산 (로컬 그리드 Y)
+        float localHeightY = surfaceGenerator.GetSurfaceHeight(gridX, gridZ);
+
+        // 2. 월드 Y 좌표로 변환
+        float worldSurfaceY = (localHeightY - worldOffset.y) + worldCenter.y + surfaceLevel;
+
+        // 3. 경사각(Slope Angle) 올바른 수학적 산출
+        float delta = 0.1f;
+        float hL = surfaceGenerator.GetSurfaceHeight(gridX - delta, gridZ);
+        float hR = surfaceGenerator.GetSurfaceHeight(gridX + delta, gridZ);
+        float hD = surfaceGenerator.GetSurfaceHeight(gridX, gridZ - delta);
+        float hU = surfaceGenerator.GetSurfaceHeight(gridX, gridZ + delta);
+
+        // 높이 차이 변화율 기반 Normal 계산 수식 교정
+        Vector3 normal = new Vector3(hL - hR, 2f * delta, hD - hU).normalized;
+        float slopeAngle = Vector3.Angle(normal, Vector3.up);
+
+        if (slopeAngle > maxSlopeAngle)
         {
-            if (float.IsNaN(hit.point.x) || float.IsInfinity(hit.point.x)) return null;
-
-            float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
-            if (slopeAngle > maxSlopeAngle) return null;
-
-            return hit.point + Vector3.up * spawnYOffset;
+            return null; // 가파른 경사면 스폰 제외
         }
 
-        return null;
+        return new Vector3(worldX, worldSurfaceY + spawnYOffset, worldZ);
     }
 
     // 프리팹 생성 함수

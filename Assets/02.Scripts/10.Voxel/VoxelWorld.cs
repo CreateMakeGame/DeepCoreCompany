@@ -35,7 +35,6 @@ public class VoxelWorld : Singleton<VoxelWorld>
 
     private Transform chunkContainer;
 
-
     protected override void Awake()
     {
         base.Awake();
@@ -107,7 +106,8 @@ public class VoxelWorld : Singleton<VoxelWorld>
                     chunks[x, y, z] = chunk;
 
                     // 병렬 생성 예약
-updateTasks.Add(chunk.UpdateChunkAsync());                }
+                    updateTasks.Add(chunk.UpdateChunkAsync());
+                }
             }
         }
 
@@ -119,6 +119,9 @@ updateTasks.Add(chunk.UpdateChunkAsync());                }
         {
             itemGen.SpawnCaveArtifacts(densities, caveGen.GetChamberCenters(), width, height, depth, surfaceLevel);
         }
+
+        SpawnObject objSpawner = FindAnyObjectByType<SpawnObject>();
+        if (objSpawner != null) { objSpawner.StartSpawning(); }
 
         PlayerSpawner spawner = FindAnyObjectByType<PlayerSpawner>();
         if (spawner != null) spawner.SpawnPlayer();

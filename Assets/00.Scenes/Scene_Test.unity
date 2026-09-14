@@ -417,6 +417,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75de71b7cf4308b42afd24a1f565741e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpawnObject
+  voxelWorld: {fileID: 1113873979}
+  surfaceGenerator: {fileID: 1113873975}
+  surfaceLevel: 0
   midSpawnObject: {fileID: 5054707376530737317, guid: bfed6347a49756142a1a61a209365f57, type: 3}
   spawnItems:
   - itemName: "\uC794\uB5141"
@@ -437,12 +440,8 @@ MonoBehaviour:
     count: 100
     itemsPerCluster: 10
     clusterRadius: 5
-  mapSize: {x: 100, y: 50, z: 100}
   maxSlopeAngle: 100
-  terrainLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  spawnYOffset: 0
+  spawnYOffset: 0.1
 --- !u!114 &1113873979
 MonoBehaviour:
   m_ObjectHideFlags: 0

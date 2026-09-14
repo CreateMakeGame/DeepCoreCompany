@@ -6,6 +6,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
     public bool useRandomSeed = true;
     [SerializeField] private int currentAppliedSeed; // 인스펙터에서 수정 불가능하게 보이기만 함
     private Vector2 surfaceOffset;
+    private bool isInitialized = false; // 초기화 여부 체크
 
     [Header("Surface Settings")]
     public float baseTerrainHeight = 20f; // 기본 지면 높이
@@ -27,9 +28,13 @@ public class VoxelSurfaceGenerator : MonoBehaviour
         {
             currentAppliedSeed = 0; // 기본 시드값
         }
+        // Random.InitState 호출 전에 현재 랜덤 상태를 보존하거나 지정
+        Random.State previousState = Random.state;
         Random.InitState(currentAppliedSeed);
-
         surfaceOffset = new Vector2(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        Random.state = previousState; // 기존 랜덤 상태 복구
+
+        isInitialized = true;
     }
 
     public void GenerateSurface(float[,,] densities, VoxelType[,,] voxelTypes, 
@@ -69,6 +74,12 @@ public class VoxelSurfaceGenerator : MonoBehaviour
     }
     public float GetSurfaceHeight(float x, float z)
     {
+        // 아직 초기화되지 않았다면 자동으로 시드 초기화 실행
+        if (!isInitialized)
+        {
+            InitializeOffsets();
+        }
+
         return baseTerrainHeight + Mathf.PerlinNoise(
             x * terrainScale + surfaceOffset.x, 
             z * terrainScale + surfaceOffset.y) * mountainHeight;
