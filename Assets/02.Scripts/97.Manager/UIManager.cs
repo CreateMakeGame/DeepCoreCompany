@@ -165,7 +165,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 다른 스크립트(예: BulletinBoard)에서 ContractBoardUI를 찾고 싶을 때 호출할 함수
+    // 다른 스크립트(예: BulletinBoard)에서 UI를 찾고 싶을 때 호출할 함수
     public T GetLocalUI<T>() where T : MonoBehaviour
     {
         System.Type type = typeof(T);
@@ -200,7 +200,7 @@ public class UIManager : MonoBehaviour
         if (uiPanel == null || uiPanel.activeSelf) return;
         uiPanel.SetActive(true);
 
-        // [수정 2] Add 대신 Push 사용 및 중복 검사 방식 보완
+        // Add 대신 Push 사용 및 중복 검사 방식 보완
         if (!openUIStack.Contains(uiPanel))
         {
             openUIStack.Push(uiPanel);
