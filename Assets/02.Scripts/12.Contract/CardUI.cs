@@ -66,7 +66,7 @@ public class CardUI : MonoBehaviour
     public void EnterMap(MapDataSO selectedMap)
     {
         UIManager.Instance.CloseTopUI();
-        SceneManager.LoadScene(selectedMap.sceneName);
+        SceneManager.LoadScene(selectedMap.SceneName);
     }
 
     private void ClearContainer(Transform container)

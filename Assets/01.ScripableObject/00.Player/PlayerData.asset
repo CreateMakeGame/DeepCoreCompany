@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
   maxHp: 100
   maxStamina: 100
-  staminaDrainRate: 20
-  staminaRegenRate: 10
-  regenDelay: 2
+  staminaDrainRate: 10
+  staminaRegenRate: 20
+  regenDelay: 1
   baseSpeed: 3
   runSpeed: 5
   jumpHeight: 1.5
@@ -26,6 +26,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  digStaminaCost: 10
   baseDigDuration: 1
   digSpeedMultiplier: 1
   digCooldown: 1

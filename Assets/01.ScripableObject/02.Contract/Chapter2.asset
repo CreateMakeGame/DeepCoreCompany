@@ -15,7 +15,7 @@ MonoBehaviour:
   mapID: Chapter_2_0
   mapName: Chapter2
   mapPreviewSprite: {fileID: 21300000, guid: b70ab9bc93be7c944877a200c1b01c67, type: 3}
-  sceneName: Scene_Test
+  sceneType: 1
   dangerCount: 1
   mapItemList:
   - {fileID: 11400000, guid: d00b426e7e1e0c447a72b904e41d8422, type: 2}

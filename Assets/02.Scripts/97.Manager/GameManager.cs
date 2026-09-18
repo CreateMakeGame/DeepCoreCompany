@@ -15,12 +15,6 @@ public class GameManager : Singleton<GameManager>
         SetCursorState(true);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void IncreaseQuota()
     {
         currentQuota += 150;

@@ -1,9 +1,12 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class MapSelectUI : MonoBehaviour
 {
     [Header("UI Reference")]
+    [SerializeField] private TextMeshProUGUI quotaText;
     public CardUI leftCardUI;
     public CardUI rightCardUI;
 
@@ -13,6 +16,8 @@ public class MapSelectUI : MonoBehaviour
 
     [Header("Button")]
     [SerializeField] private Button exitButton;
+
+    GameManager gameManager;
 
     private void Awake()
     {
@@ -53,6 +58,7 @@ public class MapSelectUI : MonoBehaviour
 
     public void OpenUI(MapDataSO leftData = null, MapDataSO rightData = null)
     {
+        UpdateQuotaText();
         // UI 갱신
         InitCards(leftData, rightData);
 
@@ -64,6 +70,14 @@ public class MapSelectUI : MonoBehaviour
         else
         {
             gameObject.SetActive(true);
+        }
+    }
+
+    private void UpdateQuotaText()
+    {
+        if (quotaText != null)
+        {
+            quotaText.text = $"할당량 : {GameManager.Instance.currentQuota}";
         }
     }
 

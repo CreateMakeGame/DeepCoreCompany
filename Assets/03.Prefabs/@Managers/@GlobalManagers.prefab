@@ -78,7 +78,6 @@ Transform:
   m_Children:
   - {fileID: 2787734285621076443}
   - {fileID: 4196932305977034816}
-  - {fileID: 287136255168376134}
   - {fileID: 6713313071291153094}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -96,8 +95,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Manager
   <Game>k__BackingField: {fileID: 1348668402629777330}
   <Camera>k__BackingField: {fileID: 5546460034815775548}
-  <Inventory>k__BackingField: {fileID: 0}
-  <Contract>k__BackingField: {fileID: 7767808933630035955}
   <UI>k__BackingField: {fileID: 7095189717713610772}
 --- !u!1 &3955649444331664934
 GameObject:
@@ -143,68 +140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d9c95bec4c484c488d86f2184ea595c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
---- !u!1 &6243340748380124136
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 287136255168376134}
-  - component: {fileID: 7767808933630035955}
-  m_Layer: 0
-  m_Name: ContractManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &287136255168376134
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6243340748380124136}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5724300317220836504}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7767808933630035955
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6243340748380124136}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5f6d40a746ddc74c90877d91551771c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ContractManager
-  contractTemplates:
-  - {fileID: 11400000, guid: 43086781dd890404f8c5e9f6785dedc3, type: 2}
-  - {fileID: 11400000, guid: f3252cc99c01e4045bc93136f1f67544, type: 2}
-  - {fileID: 11400000, guid: 79ec3918eecfca24abb24798aaf5b663, type: 2}
-  - {fileID: 11400000, guid: 3e8a2507d1b6afa48af294f21375dc11, type: 2}
-  totalCompletedContracts: 0
-  currentAcceptedContract:
-    contractID: 
-    company: 0
-    contractTitle: 
-    targets: []
-    difficulty: 
-    region: 
-    targetSceneName: 
-    rewardMoney: 0
-    isAccepted: 0
-  availableContracts: []
-  unlockedCompanies: 
+  currentQuota: 200
+  currentMoney: 0
 --- !u!1 &7255447391146799682
 GameObject:
   m_ObjectHideFlags: 0
