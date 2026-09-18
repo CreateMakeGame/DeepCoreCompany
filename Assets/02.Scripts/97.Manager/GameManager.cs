@@ -1,7 +1,15 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : Singleton<GameManager>
 {
+    public int currentQuota = 200;       // 현재 목표 할당량
+    public int currentMoney = 0;     // 현재 모은 돈
+
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     void Start()
     {
         SetCursorState(true);
@@ -13,6 +21,10 @@ public class GameManager : MonoBehaviour
         
     }
 
+    public void IncreaseQuota()
+    {
+        currentQuota += 150;
+    }
 
     private void SetCursorState(bool isLocked)
     {

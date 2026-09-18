@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class CardUI : MonoBehaviour
@@ -11,12 +12,15 @@ public class CardUI : MonoBehaviour
     public Button enterButton;
 
     [Header("Prefab")]
-    public GameObject dangerIconPrefab;
-    public GameObject itemSlotPrefab;   // 아이템 슬롯 전용 프리팹 (ItemSlotUI 부착 필수)
+    public GameObject dangerIconPrefab;         // 위헙 프리팹
+    public GameObject itemSlotPrefab;           // 아이템 슬롯 전용 프리팹 (ItemSlotUI 부착 필수)
 
+    private MapDataSO currentMapData;
 
     public void Setup(MapDataSO data)
     {
+        currentMapData = data;
+
         // 맵 이미지 설정
         if (mapPreviewImage != null && data.mapPreviewSprite != null)
         {
@@ -37,7 +41,7 @@ public class CardUI : MonoBehaviour
         }
 
         // 아이템 슬롯 생성 (MapDataSO에 등록된 n개의 ItemDataSO 출력)
-        if (itemSlotPrefab != null && data.mapItemList != null)
+        if (itemSlotPrefab != null && itemSlotContainer != null && data.mapItemList != null)
         {
             foreach (ItemDataSO itemData in data.mapItemList)
             {
@@ -50,6 +54,19 @@ public class CardUI : MonoBehaviour
 
             }
         }
+
+        // 씬으로 입장하는 버튼
+        if (enterButton != null)
+        {
+            enterButton.onClick.RemoveAllListeners();
+            enterButton.onClick.AddListener(() => EnterMap(currentMapData));
+        }
+    }
+
+    public void EnterMap(MapDataSO selectedMap)
+    {
+        UIManager.Instance.CloseTopUI();
+        SceneManager.LoadScene(selectedMap.sceneName);
     }
 
     private void ClearContainer(Transform container)
