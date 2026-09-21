@@ -1,13 +1,25 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+
 public class VoxelItemGenerator : MonoBehaviour
 {
+
+    // [추가] 에디터 디버그용 매몰 아이템 정보 구조체 정의
+    [System.Serializable]
+    private struct BuriedItemDebugInfo
+    {
+        public Vector3 worldPos;
+        public VoxelType type;
+        public Color color;
+    }
+
+
     [Header("Item Spawn Settings")]
     [SerializeField] private List<ItemSpawnData> itemSpawnList = new List<ItemSpawnData>();
 
-    [Header("Cave Artiface Settings")]
-    [SerializeField] private GameObject[] artifactPrefabs;
+    [Header("Cave Artifact Settings")]
+    [SerializeField] private List<ItemData> caveArtifactDataList = new List<ItemData>();
     [Range(0f, 1f)]
     [SerializeField] private float artifactSpawnChance = 0.7f;
     [Header("Artifact Burial Depth Settings")]
@@ -19,72 +31,37 @@ public class VoxelItemGenerator : MonoBehaviour
     [Range(0.3f, 1.0f)]
     [SerializeField] private float maxArtifactHeightOffset = 0.85f;
 
-    public void ApplyItemVoxels(float[,,] densities, VoxelType[,,] voxelTypes,
-        int width, int height, int depth, float surfaceLevel, VoxelSurfaceGenerator surfaceGen)
-    {
-        foreach (var spawnData in itemSpawnList)
-        {
-            if (spawnData.itemData == null) continue;
+    [SerializeField] private int generatedTotalValue = 0;
 
-            // 해당 아이템이 생성될 수 있는 모든 복셀 좌표 수집
-            List<Vector3Int> candidatePisition = new List<Vector3Int>();
 
-            for (int x = 0; x <= width; x++)
-            {
-                for (int z = 0; z <= depth; z++)
-                {
-                    float surfaceHeight = surfaceGen != null ? surfaceGen.GetSurfaceHeight(x, z) : height;
-                    int startY = Mathf.Clamp(Mathf.FloorToInt(surfaceHeight), 0, height);
-
-                    for (int y = startY; y >= 0; y--)
-                    {
-                        if (densities[x, y, z] > surfaceLevel && voxelTypes[x, y, z] == VoxelType.Dirt)
-                        {
-                            float depthFromSurface = surfaceHeight - y;
-                            if (depthFromSurface >= spawnData.minHeight && depthFromSurface <= spawnData.maxHeight)
-                            {
-                                candidatePisition.Add(new Vector3Int(x, y, z));
-                            }
-                        }
-                    }
-                }
-            }
-            // 후보지 중 무작위로 targetCount개 선택하여 아이템 배치
-            int targetCount = Random.Range(spawnData.minCount, spawnData.maxCount + 1);
-            int actualSpawnCount = Mathf.Min(targetCount, candidatePisition.Count);
-
-            for (int i = 0; i < actualSpawnCount; i++)
-            {
-                int randomIndex = Random.Range(0, candidatePisition.Count);
-                Vector3Int pos = candidatePisition[randomIndex];
-
-                voxelTypes[pos.x, pos.y, pos.z] = spawnData.voxelType;
-                // 중복 선택 방지를 위해 리스트에서 제거
-                candidatePisition.RemoveAt(randomIndex);
-            }
-        }
-    }
+    [Header("Editor Debug Settings")]
+    [SerializeField] private bool showGizmos = true;
+    [SerializeField] private float gizmoSize = 0.8f;
+    private List<BuriedItemDebugInfo> buriedItemDebugList = new List<BuriedItemDebugInfo>();
 
     /// <summary>
     /// 동굴 방(Chamber) 중심점들을 기반으로 동굴 바닥을 탐색하여 아이템 프리팹을 배치
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public void SpawnCaveArtifacts(float[,,] densities, List<Vector3Int> chamberCenters, 
+    public void SpawnCaveArtifacts(float[,,] densities, List<Vector3Int> chamberCenters,
         int width, int height, int depth, float surfaceLevel)
     {
-        if (artifactPrefabs == null || artifactPrefabs.Length == 0 || chamberCenters == null) return;
+        generatedTotalValue = 0; // 전체 아이템 가치 초기화
 
-        // 기존 생성된 유물 정리용 컨테이너
+        if (caveArtifactDataList == null || caveArtifactDataList.Count == 0 ||
+            chamberCenters == null || chamberCenters.Count == 0) return;
+
+        // 생성된 유물 정리용 컨테이너
         Transform artifactContainer = GetOrCreateContainer("[Group] Cave Artifacts", transform);
         ClearContainerChildren(artifactContainer);
 
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
 
+        List<Vector3> validSpawnPositions = new List<Vector3>();
+
         foreach (var chamber in chamberCenters)
         {
-            if (Random.value > artifactSpawnChance) continue;
-
             // 방 중심점이 실제로 뚫린 동굴(공기)인지 확인 (땅속이면 스폰하지 않음)
             if (densities[chamber.x, chamber.y, chamber.z] > surfaceLevel) continue;
 
@@ -108,12 +85,185 @@ public class VoxelItemGenerator : MonoBehaviour
                 Vector3 localPos = new Vector3(chamber.x, floorY + randomOffset, chamber.z) - offset;
                 Vector3 worldSpawnPos = transform.TransformPoint(localPos);
 
-                // X, Z축 회전 시 땅속에 묻히므로 Y축(세로축)으로만 자연스럽게 회전
-                Quaternion randomRot = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-                GameObject prefab = artifactPrefabs[Random.Range(0, artifactPrefabs.Length)];
-
-                Instantiate(prefab, worldSpawnPos, randomRot, artifactContainer);
+                validSpawnPositions.Add(worldSpawnPos);
             }
+        }
+
+        if (validSpawnPositions.Count == 0) return;
+
+        // 전체 맵 상한선 (할당량 * 1.5)
+        int maxTargetValue = Mathf.RoundToInt(GameManager.Instance.currentQuota * 1.5f);
+
+        // 무작위 셔플
+        ShuffleList(validSpawnPositions);
+        int spawnedCount = 0;
+
+        foreach (var spawnPos in validSpawnPositions)
+        {
+            // 첫 번째 유물(spawnedCount == 0)은 확률 검사 무시하여 스폰 보장
+            if (spawnedCount > 0 && Random.value > artifactSpawnChance) continue;
+
+            ItemData selectedArtifact = caveArtifactDataList[Random.Range(0, caveArtifactDataList.Count)];
+            if (selectedArtifact == null || selectedArtifact.fieldPrefab == null) continue;
+
+            // 첫 번째 스폰이 아닐 때만 상한선 제한 검사
+            if (spawnedCount > 0 && generatedTotalValue + selectedArtifact.baseValue > maxTargetValue) continue;
+
+            Quaternion randomRot = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+            Instantiate(selectedArtifact.fieldPrefab, spawnPos, randomRot, artifactContainer);
+
+            generatedTotalValue += selectedArtifact.baseValue;
+            spawnedCount++;
+        }
+
+        Debug.Log($"[ItemGenerator] 동굴 유물 스폰 완료 | 개수: {spawnedCount}개 | 총 가치: {generatedTotalValue}");
+    }
+
+
+    /// <summary>
+    /// (동굴 유물 가치 + 땅속 광물 가치)가 [Quota * 1.2 ~ 1.5] 사이가 되도록 땅속에 광물을 매몰시킵니다.
+    /// </summary>
+    public void ApplyItemVoxels(float[,,] densities, VoxelType[,,] voxelTypes,
+        int width, int height, int depth, float surfaceLevel, VoxelSurfaceGenerator surfaceGen)
+    {
+        // 디버그 리스트 초기화
+        buriedItemDebugList.Clear();
+        Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
+
+        int quota = GameManager.Instance.currentQuota;
+        int minTargetValue = Mathf.RoundToInt(quota * 1.2f);
+        int maxTargetValue = Mathf.RoundToInt(quota * 1.5f);
+        int chosenTargetValue = Random.Range(minTargetValue, maxTargetValue + 1);        // 최종적으로 맞추고자 하는 목표 가치
+
+        // 각 별로 조건에 맞는 좌표에 사전에 모아둠
+        Dictionary<int, List<Vector3Int>> candidateDictionary = new Dictionary<int, List<Vector3Int>>();
+        List<int> validIndices = new List<int>();
+
+        for (int i = 0; i < itemSpawnList.Count; i++)
+        {
+            if (itemSpawnList[i].itemData == null) continue;
+
+            List<Vector3Int> candidates = GetCandidatePositions(densities, voxelTypes, width, height, depth, surfaceLevel, surfaceGen, itemSpawnList[i]);
+            if (candidates.Count > 0)
+            {
+                candidateDictionary.Add(i, candidates);
+                validIndices.Add(i); // 후보지가 존재하는 인덱스만 스폰풀에 추가
+            }
+        }
+
+        if (validIndices.Count == 0)
+        {
+            Debug.LogWarning("[ItemGenerator] 스폰 가능한 땅속 후보지가 없습니다.");
+            return;
+        }
+
+        int buriedMineralCount = 0;
+        int safetyAttempts = 0;
+        int maxSafetyAttempts = 2000;
+
+        // 최소 1개 생성 조건과 목표 가치 도달 조건을 통합 관리
+        while ((buriedMineralCount < 1 || generatedTotalValue < chosenTargetValue)
+               && safetyAttempts < maxSafetyAttempts
+               && validIndices.Count > 0)
+        {
+            safetyAttempts++;
+
+            int randomIndex = validIndices[Random.Range(0, validIndices.Count)];
+            ItemSpawnData spawnData = itemSpawnList[randomIndex];
+
+            if (buriedMineralCount > 0 && (generatedTotalValue + spawnData.itemData.baseValue > maxTargetValue))
+            {
+                continue;
+            }
+
+            List<Vector3Int> candidates = candidateDictionary[randomIndex];
+
+            if (candidates.Count > 0)
+            {
+                int posIndex = Random.Range(0, candidates.Count);
+                Vector3Int pos = candidates[posIndex];
+
+                // 이미 다른 광물이 매몰된 위치라면 해당 좌표만 제거 후 재시도
+                if (voxelTypes[pos.x, pos.y, pos.z] != VoxelType.Dirt)
+                {
+                    candidates.RemoveAt(posIndex);
+                    if (candidates.Count == 0) validIndices.Remove(randomIndex);
+                    continue;
+                }
+
+                // 위치 결정 및 스폰
+                voxelTypes[pos.x, pos.y, pos.z] = spawnData.voxelType;
+
+                // [추가] 에디터 디버그용 월드 좌표 및 색상 저장
+                Vector3 localPos = new Vector3(pos.x, pos.y, pos.z) - offset;
+                Vector3 worldPos = transform.TransformPoint(localPos);
+
+                // 종류별 Gizmo 색상 지정 (필요 시 수정)
+                Color itemColor = GetGizmoColorForVoxelType(spawnData.voxelType);
+
+                buriedItemDebugList.Add(new BuriedItemDebugInfo
+                {
+                    worldPos = worldPos,
+                    type = spawnData.voxelType,
+                    color = itemColor
+                });
+
+                // 가치 누적 및 사용된 좌표 제거
+                generatedTotalValue += spawnData.itemData.baseValue;
+                buriedMineralCount++;
+                candidates.RemoveAt(posIndex);
+
+                // 해당 종류의 남은 후보지가 없으면 선택 목록에서 제외
+                if (candidates.Count == 0) validIndices.Remove(randomIndex);
+            }
+        }
+
+        Debug.Log($"[ItemGenerator] 전체 아이템 스폰 완료! " +
+            $"(매몰 광물: {buriedMineralCount}개 / 목표 범위: {minTargetValue}~{maxTargetValue} / " +
+            $"실제 총 가치: {generatedTotalValue})");
+    }
+
+    /// <summary>
+    /// 특정 아이템의 생성 조건에 부합하는 땅속 좌표 리스트 수집
+    /// </summary>
+    private List<Vector3Int> GetCandidatePositions(float[,,] densities, VoxelType[,,] voxelTypes,
+        int width, int height, int depth, float surfaceLevel, VoxelSurfaceGenerator surfaceGen, ItemSpawnData spawnData)
+    {
+        List<Vector3Int> candidates = new List<Vector3Int>();
+
+        for (int x = 0; x <= width; x++)
+        {
+            for (int z = 0; z <= depth; z++)
+            {
+                float surfaceHeight = surfaceGen != null ? surfaceGen.GetSurfaceHeight(x, z) : height;
+                int startY = Mathf.Clamp(Mathf.FloorToInt(surfaceHeight), 0, height);
+
+                for (int y = startY; y >= 0; y--)
+                {
+                    if (densities[x, y, z] > surfaceLevel && voxelTypes[x, y, z] == VoxelType.Dirt)
+                    {
+                        float depthFromSurface = surfaceHeight - y;
+                        if (depthFromSurface >= spawnData.minHeight && depthFromSurface <= spawnData.maxHeight)
+                        {
+                            candidates.Add(new Vector3Int(x, y, z));
+                        }
+                    }
+                }
+            }
+        }
+
+        return candidates;
+    }
+
+    // 리스트 무작위 셔플
+    private void ShuffleList<T>(List<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int rnd = Random.Range(0, i + 1);
+            T temp = list[i];
+            list[i] = list[rnd];
+            list[rnd] = temp;
         }
     }
 
@@ -156,4 +306,32 @@ public class VoxelItemGenerator : MonoBehaviour
     }
 
     public List<ItemSpawnData> GetSpawnList() => itemSpawnList;
+
+
+    // VoxelType별 Gizmos 표시 색상 지정
+    private Color GetGizmoColorForVoxelType(VoxelType type)
+    {
+        switch (type)
+        {
+            case VoxelType.Iron: return Color.gray;
+            case VoxelType.Gold: return Color.yellow;
+            default: return Color.green;
+        }
+    }
+    // 에디터 Scene 뷰에 디버그용 기즈모 그리기 (수정됨)
+    private void OnDrawGizmos()
+    {
+        if (!showGizmos || buriedItemDebugList == null) return;
+
+        foreach (var item in buriedItemDebugList)
+        {
+            // 1. 와이어프레임 선 그리기
+            Gizmos.color = item.color;
+            Gizmos.DrawWireCube(item.worldPos, Vector3.one * gizmoSize);
+
+            // 2. 반투명 큐브 채우기 (Gizmos.DrawCube 함수명으로 수정)
+            Gizmos.color = new Color(item.color.r, item.color.g, item.color.b, 0.35f);
+            Gizmos.DrawCube(item.worldPos, Vector3.one * gizmoSize);
+        }
+    }
 }

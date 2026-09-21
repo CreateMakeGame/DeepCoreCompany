@@ -389,19 +389,14 @@ MonoBehaviour:
   itemSpawnList:
   - itemData: {fileID: 11400000, guid: a1789e58e33aa6c4aacc86c2ba70a8af, type: 2}
     voxelType: 2
-    minCount: 0
-    maxCount: 0
     minHeight: 5
     maxHeight: 50
   - itemData: {fileID: 11400000, guid: 3b73b73a6eaa58f45aba2382efef9821, type: 2}
     voxelType: 3
-    minCount: 0
-    maxCount: 0
     minHeight: 5
     maxHeight: 50
-  artifactPrefabs:
-  - {fileID: 5870368787141594202, guid: e3e70efb617fc77438a5a499479045e0, type: 3}
-  - {fileID: 3624062378716900593, guid: 19131bdf801e74a4db27aa34f51f46e4, type: 3}
+  caveArtifactDataList:
+  - {fileID: 11400000, guid: 1316d9bab711e4141bbe74044fc46385, type: 2}
   artifactSpawnChance: 1
   minArtifactHeightOffset: 0.5
   maxArtifactHeightOffset: 0.85

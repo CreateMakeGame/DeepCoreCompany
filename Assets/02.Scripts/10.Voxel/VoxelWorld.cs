@@ -75,6 +75,10 @@ public class VoxelWorld : Singleton<VoxelWorld>
 
         if (surfaceGen != null) surfaceGen.GenerateSurface(densities, voxelTypes, width, height, depth, surfaceLevel);
         if (caveGen != null) caveGen.ApplyCaves(densities, voxelTypes, width, height, depth, surfaceGen);
+        if (itemGen != null && caveGen != null)
+        {
+            itemGen.SpawnCaveArtifacts(densities, caveGen.GetChamberCenters(), width, height, depth, surfaceLevel);
+        }
         if (itemGen != null) itemGen.ApplyItemVoxels(densities, voxelTypes, width, height, depth, surfaceLevel, surfaceGen);
 
         // 청크 배열 계산 및 오브젝트 동적 생성
@@ -113,12 +117,6 @@ public class VoxelWorld : Singleton<VoxelWorld>
 
         // 모든 청크 초기 메쉬 생성 완료까지 대기
         await Task.WhenAll(updateTasks);
-
-        // 지형 및 메쉬 생성 완료 후 동굴 유물 스폰 실행 (densities, surfaceLevel 전달)
-        if (itemGen != null && caveGen != null)
-        {
-            itemGen.SpawnCaveArtifacts(densities, caveGen.GetChamberCenters(), width, height, depth, surfaceLevel);
-        }
 
         SpawnObject objSpawner = FindAnyObjectByType<SpawnObject>();
         if (objSpawner != null) { objSpawner.StartSpawning(); }
@@ -258,15 +256,6 @@ public class VoxelWorld : Singleton<VoxelWorld>
     }
     public float GetSurfaceHeight(float x, float z) => surfaceGen != null ? surfaceGen.GetSurfaceHeight(x, z) : height;
 
-    //// VoxelWorld.cs 클래스 내부에 추가
-    //private void OnDrawGizmosSelected()
-    //{
-    //    if (useDigBounds)
-    //    {
-    //        Gizmos.color = Color.green;
-    //        // 굴착 가능 영역을 녹색 와이어프레임 상자로 표시
-    //        Gizmos.DrawWireCube(transform.position + digZoneOffset, digZoneSize);
-    //    }
-    //}
+    
 }
 
