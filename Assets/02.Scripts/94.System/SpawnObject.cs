@@ -140,7 +140,7 @@ public class SpawnObject : MonoBehaviour
         float halfDepth = voxelWorld.depth * 0.5f;
 
         float randomX = Random.Range(-halfWidth, halfWidth) + worldCenter.x;
-        float randomZ = Random.Range(-halfWidth, halfWidth) + worldCenter.z;
+        float randomZ = Random.Range(-halfDepth, halfDepth) + worldCenter.z;
 
         return GetTerrainPositionAt(randomX, randomZ);
     }

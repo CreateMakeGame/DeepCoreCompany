@@ -8,7 +8,7 @@ public class BulletinBoard : MonoBehaviour, IInteractable
 
     public InteractionType interactionType => InteractionType.Inspect;
 
-    public string GetInteractName() => "기업 의뢰 게시판";
+    public string GetInteractName() => "의뢰 게시판";
     public string GetInteractPrompt() => "확인하기 (E)";
     // 플레이어가 E키 등으로 게시판을 바라보고 상호작용했을 때 실행될 내용
     //public void Interact() => OpenContractBoard();

@@ -35,7 +35,7 @@ public class ItemObject : MonoBehaviour, IInteractable
     {
         if (itemData == null) return "조사하기 (E)";
 
-        return $"줍기 (E) - {itemData.weight}kg";
+        return $"줍기 (E)";
     }
 
     // 진짜로 주웠을 때의 처리

@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
 {
-    public int currentQuota = 200;       // 현재 목표 할당량
-    public int currentMoney = 0;     // 현재 모은 돈
+    public int currentQuota = 200;          // 현재 목표 할당량
+    public int currentMoney = 0;            // 현재 모은 돈
 
     protected override void Awake()
     {
@@ -17,9 +17,20 @@ public class GameManager : Singleton<GameManager>
 
     public void IncreaseQuota()
     {
-        currentQuota += 150;
+        currentQuota = Mathf.RoundToInt(currentQuota * 1.3f);
     }
 
+    public bool CheckAndCompleteQuota()
+    {
+        if (currentMoney >= currentQuota)
+        {
+            currentMoney -= currentQuota;   // 할당량을 낸 값을 가지고 있기
+            IncreaseQuota();
+            return true;
+        }
+        return false;
+
+    }
     private void SetCursorState(bool isLocked)
     {
         if (isLocked)

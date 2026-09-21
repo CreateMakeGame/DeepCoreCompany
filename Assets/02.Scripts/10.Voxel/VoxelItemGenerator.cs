@@ -66,7 +66,7 @@ public class VoxelItemGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 동굴 방(Chamber) 중심점들을 기반으로 동굴 바닥을 탐색하여 유물 프리팹을 배치
+    /// 동굴 방(Chamber) 중심점들을 기반으로 동굴 바닥을 탐색하여 아이템 프리팹을 배치
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
