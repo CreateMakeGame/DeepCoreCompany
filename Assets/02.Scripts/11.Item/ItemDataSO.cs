@@ -12,7 +12,6 @@ public class ItemDataSO : ScriptableObject
 
     [Header("게임 플레이 데이터")]
     public int baseValue;               // 기본 납품 가치 (보상 계산용)
-    public float weight;                // 아이템 무게 (인벤토리 관리 및 이동 속도에 영향)
 
     [Header("비주얼 참조")]
     public GameObject fieldPrefab;    // 아이템 프리팹

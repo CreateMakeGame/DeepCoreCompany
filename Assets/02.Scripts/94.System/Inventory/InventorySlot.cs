@@ -7,7 +7,7 @@ public class InventorySlot : MonoBehaviour
     [SerializeField] private Image iconImage;          // 내부의 Icon 이미지 컴포넌트
     [SerializeField] private TextMeshProUGUI quantityText; // 내부의 Text (TMP) 컴포넌트
 
-    public void SetItem(ItemData itemData, int quantity)
+    public void SetItem(ItemDataSO itemData, int quantity)
     {
         if (itemData == null) return;
 

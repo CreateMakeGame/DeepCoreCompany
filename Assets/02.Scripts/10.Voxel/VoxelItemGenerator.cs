@@ -19,7 +19,7 @@ public class VoxelItemGenerator : MonoBehaviour
     [SerializeField] private List<ItemSpawnData> itemSpawnList = new List<ItemSpawnData>();
 
     [Header("Cave Artifact Settings")]
-    [SerializeField] private List<ItemData> caveArtifactDataList = new List<ItemData>();
+    [SerializeField] private List<ItemDataSO> caveArtifactDataList = new List<ItemDataSO>();
     [Range(0f, 1f)]
     [SerializeField] private float artifactSpawnChance = 0.7f;
     [Header("Artifact Burial Depth Settings")]
@@ -103,7 +103,7 @@ public class VoxelItemGenerator : MonoBehaviour
             // 첫 번째 유물(spawnedCount == 0)은 확률 검사 무시하여 스폰 보장
             if (spawnedCount > 0 && Random.value > artifactSpawnChance) continue;
 
-            ItemData selectedArtifact = caveArtifactDataList[Random.Range(0, caveArtifactDataList.Count)];
+            ItemDataSO selectedArtifact = caveArtifactDataList[Random.Range(0, caveArtifactDataList.Count)];
             if (selectedArtifact == null || selectedArtifact.fieldPrefab == null) continue;
 
             // 첫 번째 스폰이 아닐 때만 상한선 제한 검사

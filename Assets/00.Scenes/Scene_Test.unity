@@ -387,19 +387,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoxelItemGenerator
   itemSpawnList:
-  - itemData: {fileID: 11400000, guid: a1789e58e33aa6c4aacc86c2ba70a8af, type: 2}
+  - itemData: {fileID: 11400000, guid: 1776e2158aa932a4faae8cf1c36b5613, type: 2}
     voxelType: 2
     minHeight: 5
     maxHeight: 50
-  - itemData: {fileID: 11400000, guid: 3b73b73a6eaa58f45aba2382efef9821, type: 2}
+  - itemData: {fileID: 11400000, guid: d00b426e7e1e0c447a72b904e41d8422, type: 2}
     voxelType: 3
     minHeight: 5
     maxHeight: 50
   caveArtifactDataList:
-  - {fileID: 11400000, guid: 1316d9bab711e4141bbe74044fc46385, type: 2}
+  - {fileID: 11400000, guid: 25a5b651e96f8a447878fa0096924a26, type: 2}
   artifactSpawnChance: 1
   minArtifactHeightOffset: 0.5
   maxArtifactHeightOffset: 0.85
+  generatedTotalValue: 0
+  showGizmos: 1
+  gizmoSize: 0.8
 --- !u!114 &1113873978
 MonoBehaviour:
   m_ObjectHideFlags: 0

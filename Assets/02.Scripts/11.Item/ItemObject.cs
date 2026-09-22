@@ -4,7 +4,7 @@ using UnityEngine;
 public class ItemObject : MonoBehaviour, IInteractable
 {
     [Header("아이템 데이터 연결")]
-    [SerializeField] private ItemData itemData;
+    [SerializeField] private ItemDataSO itemData;
 
     [Header("물리 설정")]
     [Tooltip("체크 시 스폰되었을 때 땅속에 가만히 고정")]

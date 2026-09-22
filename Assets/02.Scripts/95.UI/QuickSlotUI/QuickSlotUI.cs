@@ -21,14 +21,14 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
     [SerializeField] private float forwardForce = 3f; // 앞으로 튀어나가는 힘
     [SerializeField] private float upwardForce = 1f; // 위로 튀어오르는 힘
 
-    private ItemData[] slotItems;
+    private ItemDataSO[] slotItems;
 
     public int CurrentSelectedSlotIndex => currentSelectedIndex;
 
     protected override void Awake()
     {
         base.Awake();
-        slotItems = new ItemData[slotObjects.Count];
+        slotItems = new ItemDataSO[slotObjects.Count];
     }
     void Start()
     {
@@ -61,7 +61,7 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
     /// 아이템 획득 시 빈 퀵슬롯 탐색 후 1개 추가 (ItemObject에서 호출)
     /// </summary>
     /// <param name="context"></param>
-    public bool TryAddItem(ItemData newItem)
+    public bool TryAddItem(ItemDataSO newItem)
     {
         // 1. 현재 하이라이트(선택)된 슬롯이 비어있다면 1순위로 채움
         if (slotItems[currentSelectedIndex] == null)
@@ -90,7 +90,7 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
 
     private void DropSelectedItem()
     {
-        ItemData itemToDrop = slotItems[currentSelectedIndex];
+        ItemDataSO itemToDrop = slotItems[currentSelectedIndex];
 
         if (itemToDrop == null) return; // 빈 슬롯이면 무시
         
