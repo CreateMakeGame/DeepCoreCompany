@@ -6,6 +6,7 @@ public enum VoxelType
     Dirt,
     Iron,
     Gold,
+    Crystals,
     Artifact,
     Sample,
     Hazardous,

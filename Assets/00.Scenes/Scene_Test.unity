@@ -395,8 +395,13 @@ MonoBehaviour:
     voxelType: 3
     minHeight: 5
     maxHeight: 50
+  - itemData: {fileID: 11400000, guid: 1e05a35f0a678b54ab170d627af28768, type: 2}
+    voxelType: 4
+    minHeight: 5
+    maxHeight: 50
   caveArtifactDataList:
   - {fileID: 11400000, guid: 25a5b651e96f8a447878fa0096924a26, type: 2}
+  - {fileID: 11400000, guid: 1e05a35f0a678b54ab170d627af28768, type: 2}
   artifactSpawnChance: 1
   minArtifactHeightOffset: 0.5
   maxArtifactHeightOffset: 0.85
