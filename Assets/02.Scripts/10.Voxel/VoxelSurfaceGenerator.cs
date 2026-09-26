@@ -31,15 +31,18 @@ public class VoxelSurfaceGenerator : MonoBehaviour
         // Random.InitState 호출 전에 현재 랜덤 상태를 보존하거나 지정
         Random.State previousState = Random.state;
         Random.InitState(currentAppliedSeed);
+        
         surfaceOffset = new Vector2(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        
         Random.state = previousState; // 기존 랜덤 상태 복구
-
         isInitialized = true;
     }
 
     public void GenerateSurface(float[,,] densities, VoxelType[,,] voxelTypes, 
         int width, int height, int depth, float surfaceLevel)
     {
+        if (!isInitialized) InitializeOffsets();
+
         for (int x = 0; x <= width; x++)
         {
             for (int z = 0; z <= depth; z++)

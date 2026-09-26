@@ -28,4 +28,7 @@ public class PlayerData : ScriptableObject
     public float digSpeedMultiplier = 1.0f; // 굴착 애니메이션 속도 조절을 위한 배수
     public float digCooldown = 1.0f;        // 굴착 사이의 대기 시간
     public float digRange = 4.0f;           // 굴착이 가능한 최대 거리
+
+    [Tooltip("땅을 팠을 때 감지할 오브젝트 레이어 (Plant, Mineral 등)")]
+    public LayerMask digTargetLayer; // <- 이 항목 추가!
 }

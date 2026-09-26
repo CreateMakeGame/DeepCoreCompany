@@ -59,35 +59,46 @@ public class VoxelWorld : Singleton<VoxelWorld>
     // 지형을 생성하는 전체 과정을 하나로 묶은 함수
     public async Task GenerateTerrain()
     {
-        // 빈 부모 컨테이너 생성 및 월드 하위에 정렬
-        if (chunkContainer == null)
+        // 씬 전환 후 기존 청크 컨테이너 클리어 및 재생성
+        if (chunkContainer != null)
         {
-            GameObject containerObj = new GameObject("ChunkContainer");
-            containerObj.transform.SetParent(transform);
-            containerObj.transform.localPosition = Vector3.zero;
-            containerObj.transform.localRotation = Quaternion.identity;
-            chunkContainer = containerObj.transform;
+            Destroy(chunkContainer.gameObject);
         }
+
+        GameObject containerObj = new GameObject("ChunkContainer");
+        containerObj.transform.SetParent(transform);
+        containerObj.transform.localPosition = Vector3.zero;
+        containerObj.transform.localRotation = Quaternion.identity;
+        chunkContainer = containerObj.transform;
 
         // 큐브의 '모서리'를 기준으로 계산하므로 배열 크기는 width + 1 입니다.
         densities = new float[width + 1, height + 1, depth + 1];
         voxelTypes = new VoxelType[width + 1, height + 1, depth + 1];    // 각 점의 VoxelType을 저장하는 배열
 
+        // 1. 지형 표면 생성
         if (surfaceGen != null) surfaceGen.GenerateSurface(densities, voxelTypes, width, height, depth, surfaceLevel);
-        if (caveGen != null) caveGen.ApplyCaves(densities, voxelTypes, width, height, depth, surfaceGen);
-        if (itemGen != null && caveGen != null)
-        {
-            itemGen.SpawnCaveArtifacts(densities, caveGen.GetChamberCenters(), width, height, depth, surfaceLevel);
-        }
-        if (itemGen != null) itemGen.ApplyItemVoxels(densities, voxelTypes, width, height, depth, surfaceLevel, surfaceGen);
 
-        // 청크 배열 계산 및 오브젝트 동적 생성
+        // 2. 동굴 생성
+        List<Vector3Int> chamberCenters = null;
+        if (caveGen != null)
+        {
+            caveGen.ApplyCaves(densities, voxelTypes, width, height, depth, surfaceGen);
+            chamberCenters = caveGen.GetChamberCenters();
+        }
+
+        // 3. 동굴 유물 및 매몰 광물 아이템 스폰
+        if (itemGen != null)
+        {
+            itemGen.SpawnCaveArtifacts(densities, chamberCenters, width, height, depth, surfaceLevel);
+            itemGen.ApplyItemVoxels(densities, voxelTypes, width, height, depth, surfaceLevel, surfaceGen);
+        }
+
+        // 4. 청크 비동기メッシュ 생성
         numChunksX = Mathf.CeilToInt((float)width / VoxelChunk.ChunkSize);
         numChunksY = Mathf.CeilToInt((float)height / VoxelChunk.ChunkSize);
         numChunksZ = Mathf.CeilToInt((float)depth / VoxelChunk.ChunkSize);
 
         chunks = new VoxelChunk[numChunksX, numChunksY, numChunksZ];
-
         List<Task> updateTasks = new List<Task>();
 
         for (int x = 0; x < numChunksX; x++)

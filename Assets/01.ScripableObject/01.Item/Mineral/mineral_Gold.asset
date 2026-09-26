@@ -19,3 +19,5 @@ MonoBehaviour:
   itemIcon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   baseValue: 30
   fieldPrefab: {fileID: 5870368787141594202, guid: e3e70efb617fc77438a5a499479045e0, type: 3}
+  isSpecialCondition: 0
+  specialFieldPrefab: {fileID: 0}

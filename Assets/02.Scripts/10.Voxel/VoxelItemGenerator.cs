@@ -20,8 +20,7 @@ public class VoxelItemGenerator : MonoBehaviour
 
     [Header("Cave Artifact Settings")]
     [SerializeField] private List<ItemDataSO> caveArtifactDataList = new List<ItemDataSO>();
-    [Range(0f, 1f)]
-    [SerializeField] private float artifactSpawnChance = 0.7f;
+    
     [Header("Artifact Burial Depth Settings")]
     [Tooltip("땅속에 파묻히는 최소 높이 오프셋 (0.5 = 절반 매몰)")]
     [Range(0.3f, 1.0f)]
@@ -100,17 +99,19 @@ public class VoxelItemGenerator : MonoBehaviour
 
         foreach (var spawnPos in validSpawnPositions)
         {
-            // 첫 번째 유물(spawnedCount == 0)은 확률 검사 무시하여 스폰 보장
-            if (spawnedCount > 0 && Random.value > artifactSpawnChance) continue;
-
             ItemDataSO selectedArtifact = caveArtifactDataList[Random.Range(0, caveArtifactDataList.Count)];
-            if (selectedArtifact == null || selectedArtifact.fieldPrefab == null) continue;
+            if (selectedArtifact == null) continue;
+
+            // 스폰 시 사용할 프리팹 가져오기
+            GameObject prefabToSpawn = selectedArtifact.GetSpawnPrefab();
+            if (prefabToSpawn == null) continue;
 
             // 첫 번째 스폰이 아닐 때만 상한선 제한 검사
             if (spawnedCount > 0 && generatedTotalValue + selectedArtifact.baseValue > maxTargetValue) continue;
 
             Quaternion randomRot = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-            Instantiate(selectedArtifact.fieldPrefab, spawnPos, randomRot, artifactContainer);
+            // 구해둔 prefabToSpawn으로 생성
+            Instantiate(prefabToSpawn, spawnPos, randomRot, artifactContainer);
 
             generatedTotalValue += selectedArtifact.baseValue;
             spawnedCount++;
@@ -302,7 +303,9 @@ public class VoxelItemGenerator : MonoBehaviour
     public GameObject GetFieldPrefab(VoxelType type)
     {
         ItemSpawnData data = itemSpawnList.Find(s => s.voxelType == type);
-        return data.itemData != null ? data.itemData.fieldPrefab : null;
+        if(data.itemData == null) return null;
+
+        return data.itemData.GetDropPrefab();
     }
 
     public List<ItemSpawnData> GetSpawnList() => itemSpawnList;

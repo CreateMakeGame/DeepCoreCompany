@@ -113,7 +113,7 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
             spawnPosition = playerTrans.position + dropDirection * 1.2f + Vector3.up * 0.5f;
         }
 
-        // 1. 월드에 fieldPrefab 생성
+        // 월드에 fieldPrefab 생성
         if (itemToDrop.fieldPrefab != null)
         {
             // 카메라 바라보는 방향을 바라보도록 생성
@@ -121,12 +121,15 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
 
             if(droppedObject.TryGetComponent<Rigidbody>(out Rigidbody rb))
             {
+                rb.isKinematic = false;
+                rb.useGravity = true;
+
                 Vector3 dropImpulse = dropDirection * forwardForce + Vector3.up * upwardForce;
                 rb.AddForce(dropImpulse, ForceMode.Impulse);
             }
         }
 
-        // 2. 퀵슬롯 데이터 비우기 & UI 갱신
+        // 퀵슬롯 데이터 비우기 & UI 갱신
         slotItems[currentSelectedIndex] = null;
         UpdateSlotUI(currentSelectedIndex);
     }
