@@ -154,7 +154,7 @@ public class VoxelCaveGenerator : MonoBehaviour
                 }
             }
         }
-        //Debug.Log($"[VoxelCaveGenerator] 생성된 방(Chamber) 개수: {chamberCenters.Count}");
+        Debug.Log($"[VoxelCaveGenerator] 생성된 방(Chamber) 개수: {chamberCenters.Count}");
     }
 
     // 방 중심점끼리 너무 가깝게 붙지 않도록 거리를 검사하는 함수

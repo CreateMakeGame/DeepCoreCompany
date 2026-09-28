@@ -1,64 +1,120 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class ItemObject : MonoBehaviour, IInteractable
+public class ItemObject : MonoBehaviour
 {
     [Header("아이템 데이터 연결")]
     [SerializeField] private ItemDataSO itemData;
 
-    [Header("물리 설정")]
-    [Tooltip("체크 시 스폰되었을 때 땅속에 가만히 고정")]
+    [Header("매몰 및 물리 설정")]
     [SerializeField] private bool isBuriedOnSpawn = true;
+    [SerializeField] private float checkInterval = 0.2f;
 
     private Rigidbody rb;
+    private Collider itemCollider;
 
-    public InteractionType interactionType => InteractionType.Pickup;
+    private bool isExposed = false;
+    private float timer = 0f;
+
+    public ItemDataSO ItemData => itemData;
+    public bool IsBuried => isBuriedOnSpawn && !isExposed;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        itemCollider = GetComponent<Collider>();
 
-        if (isBuriedOnSpawn && rb != null)
+        ApplyBuriedState();
+    }
+
+    private void Update()
+    {
+        // 땅속에 매몰된 상태일 때만 땅이 파였는지 검사
+        if (IsBuried)
         {
-            rb.isKinematic = true;
+            timer += Time.deltaTime;
+            if (timer >= checkInterval)
+            {
+                timer = 0f;
+                CheckIfFullyExposed();
+            }
         }
     }
 
-    // UI에 띄울 아이템 이름 전달
-    public string GetInteractName()
+    public void Initialize(ItemDataSO data, bool isBuried = false)
     {
-        return itemData != null ? itemData.itemName : "알 수 없는 아이템";
+        itemData = data;
+        isBuriedOnSpawn = isBuried;
+        if (isBuried)
+            ApplyBuriedState();
+        else
+            UnfreezePhysics();
     }
 
-    // UI에 띄울 상호작용 방법 전달
-    public string GetInteractPrompt()
+    private void ApplyBuriedState()
     {
-        if (itemData == null) return "조사하기 (E)";
-
-        return $"줍기 (E)";
-    }
-
-    // 진짜로 주웠을 때의 처리
-    public void Interact(GameObject player)
-    {
-        if (itemData == null) return;
-
-        bool isSuccess = QuickSlotUI.Instance.TryAddItem(itemData);
-
-        if (isSuccess)
+        if (IsBuried)
         {
-            Destroy(gameObject);
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.useGravity = false;
+            }
+
+            if (itemCollider != null)
+            {
+                itemCollider.isTrigger = true;
+            }
+        }
+    }
+
+    private void CheckIfFullyExposed()
+    {
+        if (VoxelWorld.Instance == null) return;
+
+        Vector3 worldPos = transform.position;
+        Vector3 offset = VoxelWorld.Instance.GetWorldOffset();
+
+        int x = Mathf.RoundToInt(worldPos.x + offset.x);
+        int y = Mathf.RoundToInt(worldPos.y + offset.y);
+        int z = Mathf.RoundToInt(worldPos.z + offset.z);
+
+        float density = VoxelWorld.Instance.GetDensity(x, y, z);
+        float surfaceLevel = VoxelWorld.Instance.surfaceLevel;
+
+        if (density <= surfaceLevel)
+        {
+            ExposeItem();
+        }
+    }
+
+    private void ExposeItem()
+    {
+        isExposed = true;
+        UnfreezePhysics();
+
+        if (rb != null)
+        {
+            rb.AddForce(Vector3.up * 2f, ForceMode.Impulse);
         }
     }
 
     /// <summary>
-    /// 곡괭이로 땅을 파내거나, 공중에서 아이템을 버릴 때 호출하여 물리를 다시 켜는 함수
+    /// 외부(버리기, 발굴 등)에서 물리를 켤 때 호출
     /// </summary>
     public void UnfreezePhysics()
     {
+        isBuriedOnSpawn = false;
+
         if (rb != null)
         {
             rb.isKinematic = false;
+            rb.useGravity = true;
+        }
+
+        if (itemCollider != null)
+        {
+            itemCollider.isTrigger = false;
         }
     }
 }

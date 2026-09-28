@@ -31,3 +31,6 @@ MonoBehaviour:
   digSpeedMultiplier: 1
   digCooldown: 1
   digRange: 4
+  digTargetLayer:
+    serializedVersion: 2
+    m_Bits: 768

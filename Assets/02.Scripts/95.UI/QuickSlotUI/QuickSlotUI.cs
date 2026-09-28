@@ -110,7 +110,7 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
             Transform playerTrans = player != null ? player.transform : transform;
 
             dropDirection = playerTrans.forward;
-            spawnPosition = playerTrans.position + dropDirection * 1.2f + Vector3.up * 0.5f;
+            spawnPosition = playerTrans.position + dropDirection * 0.5f + Vector3.up * 0.5f;
         }
 
         // 월드에 fieldPrefab 생성
@@ -119,11 +119,18 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
             // 카메라 바라보는 방향을 바라보도록 생성
             GameObject droppedObject = Instantiate(itemToDrop.fieldPrefab, spawnPosition, Quaternion.LookRotation(dropDirection));
 
-            if(droppedObject.TryGetComponent<Rigidbody>(out Rigidbody rb))
+            if (droppedObject.TryGetComponent<ItemObject>(out ItemObject itemObject))
             {
-                rb.isKinematic = false;
-                rb.useGravity = true;
+                // 아이템 데이터 주입
+                itemObject.Initialize(itemToDrop, false);
 
+                // 버린 아이템으로 땅속에 안 묻히게 물리 상태 켜기
+                itemObject.UnfreezePhysics();
+            }
+
+            // 앞으로 던져지는 힘(Impulse) 적용
+            if (droppedObject.TryGetComponent<Rigidbody>(out Rigidbody rb))
+            {
                 Vector3 dropImpulse = dropDirection * forwardForce + Vector3.up * upwardForce;
                 rb.AddForce(dropImpulse, ForceMode.Impulse);
             }

@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2710765905989274365}
   - component: {fileID: 1369291639998541106}
-  - component: {fileID: 3841629631409761662}
   - component: {fileID: -4187212382049228659}
+  - component: {fileID: -1929668256581016923}
+  - component: {fileID: 3841629631409761662}
   m_Layer: 8
   m_Name: Amethyst Rock Cluster
   m_TagString: Interactable
@@ -62,20 +63,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &3841629631409761662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8527930778709474562}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4d4f24b9efc2884ab219a055d777562, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
-  itemData: {fileID: 11400000, guid: 1e05a35f0a678b54ab170d627af28768, type: 2}
-  isBuriedOnSpawn: 1
 --- !u!65 &-4187212382049228659
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -97,6 +84,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5, y: 0.6, z: 0.6}
   m_Center: {x: 0, y: 0.2, z: 0}
+--- !u!114 &-1929668256581016923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8527930778709474562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ff31771787c8ac4a8c20c666ec484f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInteraction
+--- !u!114 &3841629631409761662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8527930778709474562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4d4f24b9efc2884ab219a055d777562, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
+  itemData: {fileID: 11400000, guid: 1e05a35f0a678b54ab170d627af28768, type: 2}
+  isBuriedOnSpawn: 1
+  checkInterval: 0.2
 --- !u!1001 &2267381597241382656
 PrefabInstance:
   m_ObjectHideFlags: 0

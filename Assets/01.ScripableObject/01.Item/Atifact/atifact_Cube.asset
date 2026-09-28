@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: atifact_Cube
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemID: Atifact_Cube
-  itemName: "\uAE08\uAD11\uC11D"
-  ItemDescription: "\uC54C\uB85D\uB2EC\uB85D"
+  itemName: "\uD050\uBE0C\uC720\uBB3C"
+  ItemDescription: "\uC54C\uB85D\uB2EC\uB85D\uD558\uB2E4"
   itemIcon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   baseValue: 50
   fieldPrefab: {fileID: 3624062378716900593, guid: 19131bdf801e74a4db27aa34f51f46e4, type: 3}
+  isSpecialCondition: 0
+  specialFieldPrefab: {fileID: 3624062378716900593, guid: 19131bdf801e74a4db27aa34f51f46e4, type: 3}
