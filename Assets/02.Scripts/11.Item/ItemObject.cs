@@ -75,14 +75,14 @@ public class ItemObject : MonoBehaviour
         Vector3 worldPos = transform.position;
         Vector3 offset = VoxelWorld.Instance.GetWorldOffset();
 
-        int x = Mathf.RoundToInt(worldPos.x + offset.x);
-        int y = Mathf.RoundToInt(worldPos.y + offset.y);
-        int z = Mathf.RoundToInt(worldPos.z + offset.z);
+        int x = Mathf.FloorToInt(worldPos.x + offset.x);
+        int y = Mathf.FloorToInt(worldPos.y + offset.y);
+        int z = Mathf.FloorToInt(worldPos.z + offset.z);
 
         float density = VoxelWorld.Instance.GetDensity(x, y, z);
         float surfaceLevel = VoxelWorld.Instance.surfaceLevel;
 
-        if (density <= surfaceLevel)
+        if (density > surfaceLevel)
         {
             ExposeItem();
         }
@@ -95,7 +95,8 @@ public class ItemObject : MonoBehaviour
 
         if (rb != null)
         {
-            rb.AddForce(Vector3.up * 2f, ForceMode.Impulse);
+            rb.linearVelocity = Vector3.zero;
+            //rb.AddForce(Vector3.up * 2f, ForceMode.Impulse);
         }
     }
 
