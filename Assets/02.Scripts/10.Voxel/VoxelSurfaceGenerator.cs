@@ -4,15 +4,15 @@ public class VoxelSurfaceGenerator : MonoBehaviour
 {
     [Header("Seed Settings (시드 설정)")]
     public bool useRandomSeed = true;
-    [SerializeField] private int currentAppliedSeed; // 인스펙터에서 수정 불가능하게 보이기만 함
+    [SerializeField] private int currentAppliedSeed;    // 인스펙터에서 수정 불가능하게 보이기만 함
     private Vector2 surfaceOffset;
-    private bool isInitialized = false; // 초기화 여부 체크
+    private bool isInitialized = false;                 // 초기화 여부 체크
 
     [Header("Surface Settings")]
-    public float baseTerrainHeight = 20f; // 기본 지면 높이
-    public float mountainHeight = 30f;    // 산/언덕의 최대 높이
+    public float baseTerrainHeight = 20f;               // 기본 지면 높이
+    public float mountainHeight = 30f;                  // 산/언덕의 최대 높이
     [Range(0.005f, 0.2f)]
-    public float terrainScale = 0.04f;    // 지형 굴곡 크기
+    public float terrainScale = 0.04f;                  // 지형 굴곡 크기
 
     [Header("Bedrock Settings (최하단 암반 / 추락 방지)")]
     [Tooltip("맵 최하단에 절대 파지지 않는 땅의 두께 (플레이어 맵 밖 추락 방지)")]
@@ -28,6 +28,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
         {
             currentAppliedSeed = 0; // 기본 시드값
         }
+
         // Random.InitState 호출 전에 현재 랜덤 상태를 보존하거나 지정
         Random.State previousState = Random.state;
         Random.InitState(currentAppliedSeed);
@@ -43,6 +44,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
     {
         if (!isInitialized) InitializeOffsets();
 
+        // X, Z 축 평면을 먼저 순회하여 SurfaceHeight 연산 횟수를 최소화
         for (int x = 0; x <= width; x++)
         {
             for (int z = 0; z <= depth; z++)
@@ -60,10 +62,11 @@ public class VoxelSurfaceGenerator : MonoBehaviour
                         continue;
                     }
 
+                    // 밀도의 값이 양수일 경우 땅 / 음수 일 경우 공기, 0은 경계면
                     float density = surfaceHeight - y + surfaceLevel;
                     densities[x, y, z] = Mathf.Clamp(density, -1f, 2f);
 
-                    if (densities[x, y, z] > surfaceLevel)
+                    if (densities[x, y, z] >= surfaceLevel)
                     {
                         voxelTypes[x,y,z] = VoxelType.Dirt; // 지면 위는 Dirt
                     }

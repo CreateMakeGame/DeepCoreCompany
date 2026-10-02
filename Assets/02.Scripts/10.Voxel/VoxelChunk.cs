@@ -14,6 +14,8 @@ public class VoxelChunk : MonoBehaviour
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
     private Mesh mesh;
+    private readonly MeshData cachedMeshData = new MeshData();
+
 
     public class MeshData
     {
@@ -21,6 +23,14 @@ public class VoxelChunk : MonoBehaviour
         public readonly List<Color> colors = new List<Color>(2000);         //  버텍스 색상 리스트
         public readonly List<int> triangles = new List<int>(6000);
         public readonly Dictionary<Vector3Int, int> vertexIndexMap = new Dictionary<Vector3Int, int>(2000);   // 동일한 위치의 버텍스를 재사용하기 위한 맵
+        
+        public void Clear()
+        {
+            vertices.Clear();
+            colors.Clear();
+            triangles.Clear();
+            vertexIndexMap.Clear();
+        }
     }
 
     private bool isUpdating = false;
@@ -61,7 +71,7 @@ public class VoxelChunk : MonoBehaviour
     // 밀도 배열을 전체적으로 훑으면서 어디에 면(삼각형)을 만들지 결정합니다.
     private MeshData MarchChunkCubes()
     {
-        MeshData meshData = new MeshData();
+        cachedMeshData.Clear();   
 
         int startX = chunkCoord.x * ChunkSize;
         int startY = chunkCoord.y * ChunkSize;
@@ -73,12 +83,12 @@ public class VoxelChunk : MonoBehaviour
             {
                 for (int z = startZ; z < startZ + ChunkSize; z++)
                 {
-                    MarchCube(x, y, z, meshData);
+                    MarchCube(x, y, z, cachedMeshData);
                 }
             }
         }
 
-        return meshData;
+        return cachedMeshData;
     }
 
     // 큐브 한 칸(8개 꼭짓점)을 검사해서 적절한 메쉬를 MarchingTables에서 꺼내옵니다.
@@ -92,7 +102,7 @@ public class VoxelChunk : MonoBehaviour
             Vector3 cornerPos = new Vector3(x, y, z) + MarchingTables.CornerOffsets[i];
 
             // 밀도가 임계값보다 크면 땅으로 간주
-            if (world.GetDensity((int)cornerPos.x, (int)cornerPos.y, (int)cornerPos.z) > world.surfaceLevel)
+            if (world.GetDensity((int)cornerPos.x, (int)cornerPos.y, (int)cornerPos.z) >= world.surfaceLevel)
             {
                 cubeIndex |= 1 << i;
             }
@@ -125,10 +135,12 @@ public class VoxelChunk : MonoBehaviour
             chunkCoord.y * ChunkSize, 
             chunkCoord.z * ChunkSize);
 
+        // 0.01 단위(100f) 정도로 양자화(Quantize)하여 부동소수점 오차로 인한 메쉬 갈라짐 방지
+        const float resolution = 100f;
         Vector3Int key = new Vector3Int(
-            Mathf.RoundToInt(localPos.x * 1000f),
-            Mathf.RoundToInt(localPos.y * 1000f),
-            Mathf.RoundToInt(localPos.z * 1000f)
+            Mathf.RoundToInt(localPos.x * resolution),
+            Mathf.RoundToInt(localPos.y * resolution),
+            Mathf.RoundToInt(localPos.z * resolution)
         );
 
         if (meshData.vertexIndexMap.TryGetValue(key, out int index))
@@ -179,7 +191,7 @@ public class VoxelChunk : MonoBehaviour
 
         // 선형 보간 함수 작성
         float t = (surfaceLevel - val1) / (val2 - val1);
-
+        t = Mathf.Clamp01(t); // t를 0과 1 사이로 제한하여 안전하게 보간
         return Vector3.Lerp(p1, p2, t);
     }
 

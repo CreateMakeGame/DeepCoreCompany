@@ -7,14 +7,14 @@ public class VoxelCaveGenerator : MonoBehaviour
 {
     [Header("Seed Settings (시드 설정)")]
     public bool useRandomSeed = true;
-    [SerializeField] private int currentAppliedSeed; // 인스펙터에서 수정 불가능하게 보이기만 함
+    [SerializeField] private int currentAppliedSeed; // 인스펙터 확인용 ReadOnly
 
     private Vector3 noiseOffsetA;
     private Vector3 noiseOffsetB;
-    private Vector3 noiseOffsetC; // 넓은 방 생성용 오프셋
+    private Vector3 noiseOffsetC;                   // 넓은 방 생성용 오프셋
 
     [Header("Layered Cave Settings (다층 동굴 설정)")]
-    public bool enableCaves = true;             // 동굴 생성 여부
+    public bool enableCaves = true;                             // 동굴 생성 여부
     [Range(0.01f, 0.06f)] public float caveScale = 0.025f;      // 굴곡 주기 (작을수록 길게 뻗음)
     [Range(0.02f, 0.15f)] public float tunnelRadius = 0.06f;    // 통로 굵기 (작을수록 얇은 개미굴)
 
@@ -56,20 +56,18 @@ public class VoxelCaveGenerator : MonoBehaviour
         {
             currentAppliedSeed = 0; // 기본 시드값
         }
+        Random.State previousState = Random.state; // 기존 랜덤 상태 저장
         Random.InitState(currentAppliedSeed);
 
         noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
         noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
         noiseOffsetC = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        Random.state = previousState; // 기존 랜덤 상태 복구
     }
 
     private void UpdateEditorOffsets()
     {
-        Random.InitState(currentAppliedSeed);
-
-        noiseOffsetA = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
-        noiseOffsetB = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
-        noiseOffsetC = new Vector3(Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f), Random.Range(-50000f, 50000f));
+        InitializeOffsets();
     }
 
     public void ApplyCaves(float[,,] densities, VoxelType[,,] voxelTypes,
@@ -109,10 +107,9 @@ public class VoxelCaveGenerator : MonoBehaviour
                     float n1 = Get3DNoise(x + noiseOffsetA.x, y + noiseOffsetA.y, z + noiseOffsetA.z, caveScale);
                     float n2 = Get3DNoise(x + noiseOffsetB.x, y + noiseOffsetB.y, z + noiseOffsetB.z, caveScale);
 
-                    // 두 노이즈의 중심축(0.5)으로부터의 거리 계산
-                    float d1 = Mathf.Pow(n1 - 0.5f, 2);
-                    float d2 = Mathf.Pow(n2 - 0.5f, 2);
-                    float tunnelDist = Mathf.Sqrt(d1 + d2);
+                    float diff1 = n1 - 0.5f;
+                    float diff2 = n2 - 0.5f;
+                    float tunnelDist = Mathf.Sqrt(diff1 * diff1 + diff2 * diff2);
 
                     // 넓은 방 생성용 저주파 노이즈 연산
                     float chamberNoise = Get3DNoise(x + noiseOffsetC.x, y + noiseOffsetC.y, z + noiseOffsetC.z, chamberScale);
@@ -146,7 +143,8 @@ public class VoxelCaveGenerator : MonoBehaviour
 
                         densities[x, y, z] = Mathf.Lerp(densities[x, y, z], -1.0f, carveFactor);
 
-                        if (densities[x, y, z] <= 0.5f)
+                        // 밀도가 낮을 경우 공기
+                        if (densities[x, y, z] < 0.5f)
                         {
                             voxelTypes[x, y, z] = VoxelType.Air;
                         }
@@ -160,13 +158,16 @@ public class VoxelCaveGenerator : MonoBehaviour
     // 방 중심점끼리 너무 가깝게 붙지 않도록 거리를 검사하는 함수
     private bool IsFarFromOtherChambers(Vector3 position, float minDistance)
     {
-        foreach (var center in chamberCenters)
+        float minSqrDistance = minDistance * minDistance; // 제곱 거리로 비교하여 루트 연산 제거
+
+        for(int i = 0; i < chamberCenters.Count; i++)
         {
-            if (Vector3.Distance(center, position) < minDistance)
+            if ((chamberCenters[i] - position).sqrMagnitude < minSqrDistance)
             {
-                return false;
+                return false; // 이미 존재하는 방 중심점과 너무 가까움
             }
         }
+        
         return true;
     }
 
@@ -182,5 +183,7 @@ public class VoxelCaveGenerator : MonoBehaviour
         float zx = Mathf.PerlinNoise(sz, sx);
 
         return (xy + yz + zx) / 3f;
+
+        //return (xy + yz + zx) * 0.3333333f; // 나눗셈(/ 3f) 대신 상수 곱셈으로 미세 최적화
     }
 }

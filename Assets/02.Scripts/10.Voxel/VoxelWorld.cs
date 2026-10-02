@@ -10,9 +10,9 @@ public class VoxelWorld : Singleton<VoxelWorld>
     public float maxDepth = 30f;            // 토양 층위의 최대 깊이 (이 깊이까지는 토양 색상을 적용)
 
     [Header("Grid Settings")]
-    public int width = 96;                 // X축 길이 (가로), 16의 배수 권장 (16 * 6 = 96)
-    public int height = 96;                // Y축 전체 높이 공간
-    public int depth = 96;                 // Z축 길이 (세로)
+    public int width = 96;                  // X축 길이 (가로), 16의 배수 권장 (16 * 6 = 96)
+    public int height = 96;                 // Y축 전체 높이 공간
+    public int depth = 96;                  // Z축 길이 (세로)
     public float surfaceLevel = 0.5f;       // 땅과 공기를 구분하는 기준값
 
     [Header("Dig Boundary Settings")]
@@ -21,7 +21,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
     public Vector3 digZoneSize = new Vector3(10f, 20f, 10f);        // 굴착 가능 영역 크기
 
     [Header("Material")]
-    public Material terrainMaterial; // 모든 청크가 공유할 버텍스 컬러 호환 머티리얼
+    public Material terrainMaterial;                                // 모든 청크가 공유할 버텍스 컬러 호환 머티리얼
 
     private float[,,] densities;                                    // 3차원 공간의 밀도(땅인지 공기인지)를 저장하는 지도
     private VoxelType[,,] voxelTypes;                               // 각 점의 VoxelType을 저장하는 배열 (Air, Dirt, Iron 등)
@@ -31,7 +31,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
     [SerializeField] private VoxelCaveGenerator caveGen;            // 동굴 생성기
     [SerializeField] private VoxelItemGenerator itemGen;            // 매장 아이템 생성기
 
-    private int numChunksX, numChunksY, numChunksZ; // 청크 배열
+    private int numChunksX, numChunksY, numChunksZ;                 // 청크 배열
 
     private Transform chunkContainer;
 
@@ -93,7 +93,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
             itemGen.ApplyItemVoxels(densities, voxelTypes, width, height, depth, surfaceLevel, surfaceGen);
         }
 
-        // 4. 청크 비동기メッシュ 생성
+        // 4. 청크 비동기 생성
         numChunksX = Mathf.CeilToInt((float)width / VoxelChunk.ChunkSize);
         numChunksY = Mathf.CeilToInt((float)height / VoxelChunk.ChunkSize);
         numChunksZ = Mathf.CeilToInt((float)depth / VoxelChunk.ChunkSize);
@@ -139,7 +139,6 @@ public class VoxelWorld : Singleton<VoxelWorld>
     // 플레이어의 DigState에서 호출되는 함수
     public async void Dig(Vector3 worldPos, float radius, float digStrength = 1.0f)
     {
-        int digCount = 0; // 디버깅용 카운터
         // 메쉬를 중앙으로 옮겼으므로, 인덱스를 찾을 때는 반대로 오프셋을 더해줘야 합니다.
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
 
@@ -155,54 +154,72 @@ public class VoxelWorld : Singleton<VoxelWorld>
 
         // 수정이 필요한 청크 목록 (중복 방지)
         HashSet<VoxelChunk> dirtyChunks = new HashSet<VoxelChunk>();
+        List<(VoxelType type, Vector3 pos)> itemsToSpawn = new List<(VoxelType, Vector3)>();
 
-        // 구형(Sphere) 형태로 밀도 맵 파내기
-        for (int x = centerX - r; x <= centerX + r; x++)
+        // 백그라운드 스레드로 이전하여 땅파기
+        await Task.Run(() =>
         {
-            for (int y = centerY - r; y <= centerY + r; y++)
+            float sqrRadius = radius * radius;
+
+            // 구형(Sphere) 형태로 밀도 맵 파내기
+            for (int x = centerX - r; x <= centerX + r; x++)
             {
-                for (int z = centerZ - r; z <= centerZ + r; z++)
+                for (int y = centerY - r; y <= centerY + r; y++)
                 {
-                    if (y <= bedrockLimit) continue; // 최하단 암반은 파내지 않음
-
-                    // 배열 범위를 벗어나지 않도록 안전 검사
-                    if (x >= 0 && x <= width && y >= 0 && y <= height && z >= 0 && z <= depth)
+                    for (int z = centerZ - r; z <= centerZ + r; z++)
                     {
-                        Vector3 voxelWorldPos = new Vector3(x, y, z) + transform.position - offset;
-                        if (useDigBounds && !digZone.Contains(voxelWorldPos)) continue;// 굴착 제한 영역 밖이면 패스
+                        if (y <= bedrockLimit) continue; // 최하단 암반은 파내지 않음
 
-                        // 중심점과의 거리를 계산하여 구 안에 있는지 확인
-                        float dist = Vector3.Distance(new Vector3(x, y, z), new Vector3(centerX, centerY, centerZ));
-
-                        if (dist <= radius)
+                        // 배열 범위를 벗어나지 않도록 안전 검사
+                        if (x >= 0 && x <= width && y >= 0 && y <= height && z >= 0 && z <= depth)
                         {
-                            float falloff = Mathf.SmoothStep(1f, 0f, dist / radius);
-                            float removeAmount = digStrength * falloff;
+                            Vector3 voxelWorldPos = new Vector3(x, y, z) + transform.position - offset;
+                            if (useDigBounds && !digZone.Contains(voxelWorldPos)) continue;// 굴착 제한 영역 밖이면 패스
 
-                            // 아직 파괴되지 않은 땅(밀도 > -1.0)이었는지 확인
-                            if (densities[x, y, z] > -1.0f)
+                            float dx = x - centerX;         // 중심점과의 거리 계산
+                            float dy = y - centerY;
+                            float dz = z - centerZ;
+                            float sqrDist = dx * dx + dy * dy + dz * dz;
+
+                            if (sqrDist <= sqrRadius)
                             {
-                                float oldDensity = densities[x, y, z];
-                                densities[x, y, z] = Mathf.Max(-1.0f, densities[x, y, z] - removeAmount); // 밀도 감소
+                                float dist = Mathf.Sqrt(sqrDist);
+                                float falloff = Mathf.SmoothStep(1f, 0f, dist / radius);
+                                float removeAmount = digStrength * falloff;
 
-                                if (oldDensity > surfaceLevel && densities[x, y, z] <= surfaceLevel)
+                                // 아직 파괴되지 않은 땅(밀도 > -1.0)이었는지 확인
+                                if (densities[x, y, z] > -1.0f)
                                 {
-                                    SpawnItemIfExist(voxelTypes[x, y, z], voxelWorldPos);
-                                    voxelTypes[x, y, z] = VoxelType.Air;
-                                }
-                                // 실제로 밀도 변경이 일어났다면 플래그 설정
-                                if (!Mathf.Approximately(oldDensity, densities[x, y, z]))
-                                {
-                                    AddDirtyChunks(x, y, z, dirtyChunks);
-                                    digCount++;
+                                    float oldDensity = densities[x, y, z];
+                                    densities[x, y, z] = Mathf.Max(-1.0f, densities[x, y, z] - removeAmount); // 밀도 감소
+
+                                    if (oldDensity > surfaceLevel && densities[x, y, z] <= surfaceLevel)
+                                    {
+                                        lock (itemsToSpawn)     // 멀티스레드 환경에서 리스트 접근 보호
+                                        {
+                                            itemsToSpawn.Add((voxelTypes[x, y, z], voxelWorldPos));
+                                        }
+                                        voxelTypes[x, y, z] = VoxelType.Air;
+                                    }
+                                    // 실제로 밀도 변경이 일어났다면 플래그 설정
+                                    if (!Mathf.Approximately(oldDensity, densities[x, y, z]))
+                                    {
+                                        lock (dirtyChunks)     // 멀티스레드 환경에서 리스트 접근 보호
+                                        {
+                                            AddDirtyChunks(x, y, z, dirtyChunks);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+        });
+        foreach (var item in itemsToSpawn)
+        {
+            SpawnItemIfExist(item.type, item.pos);
         }
-
         // 변경된 1~4개 청크만 비동기 갱신
         List<Task> refreshTasks = new List<Task>();
         foreach (var chunk in dirtyChunks)
@@ -263,10 +280,14 @@ public class VoxelWorld : Singleton<VoxelWorld>
     public float GetDensity(int x, int y, int z)
     {
         if (densities == null) return -1f;
-        return densities[Mathf.Clamp(x, 0, width), Mathf.Clamp(y, 0, height), Mathf.Clamp(z, 0, depth)];
+
+        // 경계 검사 최적화 (0 ~ width 범위 보장)
+        int cx = x < 0 ? 0 : (x > width ? width : x);
+        int cy = y < 0 ? 0 : (y > height ? height : y);
+        int cz = z < 0 ? 0 : (z > depth ? depth : z);
+
+        return densities[cx, cy, cz];
     }
     public float GetSurfaceHeight(float x, float z) => surfaceGen != null ? surfaceGen.GetSurfaceHeight(x, z) : height;
-
-    
 }
 

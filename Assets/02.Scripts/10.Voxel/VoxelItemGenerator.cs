@@ -4,15 +4,6 @@ using System.Collections.Generic;
 
 public class VoxelItemGenerator : MonoBehaviour
 {
-    // [추가] 에디터 디버그용 매몰 아이템 정보 구조체 정의
-    [System.Serializable]
-    private struct BuriedItemDebugInfo
-    {
-        public Vector3 worldPos;
-        public VoxelType type;
-        public Color color;
-    }
-
     [Header("Item Spawn Settings")]
     [SerializeField] private List<ItemSpawnData> itemSpawnList = new List<ItemSpawnData>();
 
@@ -36,10 +27,7 @@ public class VoxelItemGenerator : MonoBehaviour
 
     [SerializeField] private int generatedTotalValue = 0;
 
-    [Header("Editor Debug Settings")]
-    [SerializeField] private bool showGizmos = true;
-    [SerializeField] private float gizmoSize = 0.8f;
-    private List<BuriedItemDebugInfo> buriedItemDebugList = new List<BuriedItemDebugInfo>();
+    private List<Vector3> debugSpawnPositions = new List<Vector3>();
 
     /// <summary>
     /// 동굴 방(Chamber) 중심점들을 기반으로 동굴 바닥을 탐색하여 아이템 프리팹을 배치
@@ -47,6 +35,7 @@ public class VoxelItemGenerator : MonoBehaviour
     public void SpawnCaveArtifacts(float[,,] densities, List<Vector3Int> chamberCenters,
         int width, int height, int depth, float surfaceLevel)
     {
+        debugSpawnPositions.Clear();
         generatedTotalValue = 0;    // 전체 아이템 가치 초기화
 
         if (caveArtifactDataList == null || caveArtifactDataList.Count == 0 ||
@@ -80,11 +69,21 @@ public class VoxelItemGenerator : MonoBehaviour
 
             // (centerDensity 검사를 제거하여 공기/땅 밀도 판정 불일치 문제를 해결)
             int floorY = -1;
+            bool inAirSpace = false;
+
+            float startDensity = densities[chamber.x, chamber.y, chamber.z];
             for (int y = chamber.y; y >= 0; y--)
             {
-                if (densities[chamber.x, y, chamber.z] < surfaceLevel)
+                float currentDensity = densities[chamber.x, y, chamber.z];
+                // 1. 현재 지점이 공기인지 확인 (density < surfaceLevel)
+                if (currentDensity < surfaceLevel)
                 {
-                    floorY = y; // 바닥 땅 블록 발견
+                    inAirSpace = true; // 공기층 진입 확인
+                }
+                // 2. 공기층을 지난 후 처음 만나는 땅 (density >= surfaceLevel)
+                else if (inAirSpace)
+                {
+                    floorY = y; // 여기가 진짜 동굴 바닥(땅)
                     break;
                 }
             }
@@ -98,7 +97,14 @@ public class VoxelItemGenerator : MonoBehaviour
                 Vector3 localPos = new Vector3(chamber.x, floorY + heightOffset, chamber.z) - offset;
                 Vector3 worldSpawnPos = transform.TransformPoint(localPos);
 
+                // [디버그 1] 콘솔 로그로 탐색 정보 확인
+                Debug.Log($"[Artifact Debug] Chamber: {chamber} | Start Density: {startDensity} | Found FloorY: {floorY} | Spawn WorldPos: {worldSpawnPos}");
+
+                // [디버그 2] 에디터 씬 뷰에서 시각적으로 확인할 디버그 레이 선 그리기 (30초간 유지)
+                Debug.DrawLine(worldSpawnPos, worldSpawnPos + Vector3.up * 1.5f, Color.green, 10f);
+
                 validSpawnPositions.Add(worldSpawnPos);
+                debugSpawnPositions.Add(worldSpawnPos); // 디버그용 좌표 저장
             }
             else
             {
@@ -118,7 +124,8 @@ public class VoxelItemGenerator : MonoBehaviour
         ShuffleList(validSpawnPositions);
 
         // 목표 가치 계산: 전체 할당량 * 1.75 중 20%
-        int totalTargetQuota = Mathf.RoundToInt(GameManager.Instance.currentQuota * totalQuotaMultiplier);
+        int currentQuota = (GameManager.Instance != null) ? GameManager.Instance.currentQuota : 0;
+        int totalTargetQuota = Mathf.RoundToInt(currentQuota * totalQuotaMultiplier);
         int caveTargetValue = Mathf.RoundToInt(totalTargetQuota * caveArtifactRatio);
 
         int spawnedCount = 0;
@@ -126,7 +133,7 @@ public class VoxelItemGenerator : MonoBehaviour
 
         foreach (var spawnPos in validSpawnPositions)
         {
-            // [수정] 목표 가치를 달성하고 최소 1개 이상 생성했다면 루프 종료 (1개만 스폰되는 버그 수정)
+            // 가치를 달성하고 최소 1개 이상 생성했다면 루프 종료 (1개만 스폰되는 버그 수정)
             if (caveTotalValue >= caveTargetValue && spawnedCount > 0)
             {
                 break;
@@ -148,14 +155,6 @@ public class VoxelItemGenerator : MonoBehaviour
                 itemObj.Initialize(selectedArtifact, true);
             }
 
-            // [보완] 동굴 유물 위치도 디버그 기즈모(보라색)로 시각화
-            buriedItemDebugList.Add(new BuriedItemDebugInfo
-            {
-                worldPos = spawnPos,
-                type = VoxelType.Dirt,
-                color = Color.magenta
-            });
-
             caveTotalValue += selectedArtifact.baseValue;
             spawnedCount++;
         }
@@ -171,7 +170,8 @@ public class VoxelItemGenerator : MonoBehaviour
     {
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
 
-        int totalTargetQuota = Mathf.RoundToInt(GameManager.Instance.currentQuota * totalQuotaMultiplier);
+        int currentQuota = (GameManager.Instance != null) ? GameManager.Instance.currentQuota : 0;
+        int totalTargetQuota = Mathf.RoundToInt(currentQuota * totalQuotaMultiplier);
         int buriedTargetValue = Mathf.RoundToInt(totalTargetQuota * (1f - caveArtifactRatio));
 
         // 1회 순회로 모든 아이템 종류에 대한 후보지 수집 (최적화 적용)
@@ -233,15 +233,6 @@ public class VoxelItemGenerator : MonoBehaviour
                 Vector3 localPos = new Vector3(pos.x, pos.y, pos.z) - offset;
                 Vector3 worldPos = transform.TransformPoint(localPos);
 
-                // 종류별 Gizmo 색상 지정 (필요 시 수정)
-                Color itemColor = GetGizmoColorForVoxelType(spawnData.voxelType);
-
-                buriedItemDebugList.Add(new BuriedItemDebugInfo
-                {
-                    worldPos = worldPos,
-                    type = spawnData.voxelType,
-                    color = itemColor
-                });
 
                 // 가치 누적 및 사용된 좌표 제거
                 buriedTotalValue += spawnData.itemData.baseValue;
@@ -276,9 +267,9 @@ public class VoxelItemGenerator : MonoBehaviour
             }
         }
 
-        for (int x = 0; x <= width; x++)
+        for (int x = 0; x < width; x++)
         {
-            for (int z = 0; z <= depth; z++)
+            for (int z = 0; z < depth; z++)
             {
                 float surfaceHeight = surfaceGen != null ? surfaceGen.GetSurfaceHeight(x, z) : height;
                 int startY = Mathf.Clamp(Mathf.FloorToInt(surfaceHeight), 0, height);
@@ -372,31 +363,17 @@ public class VoxelItemGenerator : MonoBehaviour
 
     public List<ItemSpawnData> GetSpawnList() => itemSpawnList;
 
-
-    // VoxelType별 Gizmos 표시 색상 지정
-    private Color GetGizmoColorForVoxelType(VoxelType type)
+    private void OnDrawGizmosSelected()
     {
-        switch (type)
-        {
-            case VoxelType.Iron: return Color.gray;
-            case VoxelType.Gold: return Color.yellow;
-            default: return Color.green;
-        }
-    }
-    // 에디터 Scene 뷰에 디버그용 기즈모 그리기 (수정됨)
-    private void OnDrawGizmos()
-    {
-        if (!showGizmos || buriedItemDebugList == null) return;
+        if (debugSpawnPositions == null) return;
 
-        foreach (var item in buriedItemDebugList)
+        Gizmos.color = Color.yellow;
+        foreach (var pos in debugSpawnPositions)
         {
-            // 1. 와이어프레임 선 그리기
-            Gizmos.color = item.color;
-            Gizmos.DrawWireCube(item.worldPos, Vector3.one * gizmoSize);
-
-            // 2. 반투명 큐브 채우기 (Gizmos.DrawCube 함수명으로 수정)
-            Gizmos.color = new Color(item.color.r, item.color.g, item.color.b, 0.35f);
-            Gizmos.DrawCube(item.worldPos, Vector3.one * gizmoSize);
+            // 스폰 지점에 구체 표시
+            Gizmos.DrawSphere(pos, 0.4f);
+            // 위쪽 방향으로 선 표시
+            Gizmos.DrawRay(pos, Vector3.up * 1.5f);
         }
     }
 }

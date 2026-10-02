@@ -96,7 +96,6 @@ public class ItemObject : MonoBehaviour
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
-            //rb.AddForce(Vector3.up * 2f, ForceMode.Impulse);
         }
     }
 
