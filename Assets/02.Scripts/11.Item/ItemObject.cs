@@ -24,7 +24,11 @@ public class ItemObject : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         itemCollider = GetComponent<Collider>();
 
-        ApplyBuriedState();
+        // Awake 시점에 기본 매몰 상태를 확실하게 적용
+        if (isBuriedOnSpawn)
+        {
+            ApplyBuriedState();
+        }
     }
 
     private void Update()
@@ -75,6 +79,7 @@ public class ItemObject : MonoBehaviour
         Vector3 worldPos = transform.position;
         Vector3 offset = VoxelWorld.Instance.GetWorldOffset();
 
+        // 아이템의 중심 좌표를 복셀 좌표로 변환
         int x = Mathf.FloorToInt(worldPos.x + offset.x);
         int y = Mathf.FloorToInt(worldPos.y + offset.y);
         int z = Mathf.FloorToInt(worldPos.z + offset.z);
@@ -82,7 +87,7 @@ public class ItemObject : MonoBehaviour
         float density = VoxelWorld.Instance.GetDensity(x, y, z);
         float surfaceLevel = VoxelWorld.Instance.surfaceLevel;
 
-        if (density > surfaceLevel)
+        if (density < surfaceLevel)
         {
             ExposeItem();
         }
