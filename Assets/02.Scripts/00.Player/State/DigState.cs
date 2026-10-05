@@ -6,11 +6,11 @@ public class DigState : IState
     private float animationEndTime;
 
     private VoxelWorld terrain;
-    private bool hasDug;    // 한 번만 파게 하기 위한 플래그
-    private float digTime;  // 땅이 파이는 시점 기록
+    private bool hasDug;                // 한 번만 파게 하기 위한 플래그
+    private float digTime;              // 땅이 파이는 시점 기록
 
-    private float digRadius = 2f; // 굴착 반지름
-    private float digStrength = 3f; // 깎아내는 힘을 약간 강화
+    private float digRadius = 2f;       // 굴착 반지름
+    private float digStrength = 3f;     // 깎아내는 힘을 약간 강화
 
     public DigState(PlayerStateMachine sm)
     {
@@ -27,6 +27,7 @@ public class DigState : IState
             terrain = Object.FindAnyObjectByType<VoxelWorld>();
 
         var status = stateMachine.Status;
+
         if (status != null)
         {
             if (!status.UseStamina(stateMachine.Data.digStaminaCost))
@@ -65,16 +66,17 @@ public class DigState : IState
 
                 // 식물/오브젝트 파괴
                 Collider[] hitColliders = Physics.OverlapSphere(digPos, digRadius, stateMachine.Data.digTargetLayer);
+                
                 for (int i = 0; i < hitColliders.Length; i++)
                 {
                     Collider col = hitColliders[i];
                     if (col.GetComponent<VoxelWorld>() != null) continue;
 
                     // CASE A: 광물/유물 아이템인 경우 -> UnfreezePhysics() 호출로 물리를 켜서 낙하시킴
-                    ItemObject item = col.GetComponent<ItemObject>();
+                    ItemObject item = col.GetComponentInParent<ItemObject>();
                     if (item != null)
                     {
-                        item.UnfreezePhysics();
+                        //item.UnfreezePhysics();
                         continue; // 아이템은 파괴하지 않음
                     }
 

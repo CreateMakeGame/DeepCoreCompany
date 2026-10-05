@@ -13,7 +13,7 @@ public class ItemObject : MonoBehaviour
     [SerializeField] private float revealRadius = 1.5f;
 
     private Rigidbody rb;
-    private Collider itemCollider;
+    private Collider[] itemColliders;
 
     private bool isExposed = false;
 
@@ -23,7 +23,8 @@ public class ItemObject : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        itemCollider = GetComponent<Collider>();
+
+        itemColliders = GetComponentsInChildren<Collider>(true);
 
         // Awake 시점에 기본 매몰 상태를 확실하게 적용
         if (isBuriedOnSpawn)
@@ -74,20 +75,13 @@ public class ItemObject : MonoBehaviour
     /// </summary>
     private void ApplyBuriedState()
     {
-        if (IsBuried)
+        if (rb != null)
         {
-            if (rb != null)
-            {
-                rb.isKinematic = true;
-                rb.useGravity = false;
-            }
-
-            if (itemCollider != null)
-            {
-                // 땅속에 있는 동안 물리 충돌로 튀어나오지 않도록 Trigger
-                itemCollider.isTrigger = true;
-            }
+            rb.isKinematic = true;
+            rb.useGravity = false;
         }
+
+        SetAllCollidersTrigger(true);
     }
 
 
@@ -102,6 +96,11 @@ public class ItemObject : MonoBehaviour
         isExposed = true;
         isBuriedOnSpawn = false;
 
+        Debug.Log(
+            $"[ItemObject] 유물 발굴 감지: {gameObject.name}"
+        );
+
+        // 특수 아이템이면 Special Prefab으로 교체
         if (itemData != null &&
             itemData.isSpecialCondition &&
             itemData.specialFieldPrefab != null)
@@ -109,26 +108,22 @@ public class ItemObject : MonoBehaviour
             SpawnSpecialFieldPrefab();
             return;
         }
-     
-        UnfreezePhysics();
 
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
+        // 일반 아이템은 그대로 물리 활성화
+        UnfreezePhysics();
     }
+
 
     /// <summary>
     /// 현재 fieldPrefab을 specialFieldPrefab으로 교체합니다.
     /// </summary>
     private void SpawnSpecialFieldPrefab()
     {
-        if (itemData == null)
+        if (itemData == null ||
+            itemData.specialFieldPrefab == null)
+        {
             return;
-
-        if (itemData.specialFieldPrefab == null)
-            return;
+        }
 
         Vector3 spawnPosition = transform.position;
         Quaternion spawnRotation = transform.rotation;
@@ -140,14 +135,20 @@ public class ItemObject : MonoBehaviour
             transform.parent
         );
 
-        // specialFieldPrefab에도 ItemObject가 있다면
-        // 반드시 노출 상태로 초기화
+        // 루트에 ItemObject가 있는 구조를 기본으로 사용
         ItemObject specialItem =
             specialObject.GetComponent<ItemObject>();
 
         if (specialItem != null)
         {
             specialItem.Initialize(itemData, false);
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"[ItemObject] Special Prefab '{specialObject.name}'에 " +
+                $"ItemObject가 없습니다."
+            );
         }
 
         Debug.Log(
@@ -170,11 +171,25 @@ public class ItemObject : MonoBehaviour
         {
             rb.isKinematic = false;
             rb.useGravity = true;
+
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
 
-        if (itemCollider != null)
+        SetAllCollidersTrigger(false);
+    }
+    private void SetAllCollidersTrigger(bool isTrigger)
+    {
+        if (itemColliders == null)
+            return;
+
+        foreach (Collider col in itemColliders)
         {
-            itemCollider.isTrigger = false;
+            if (col != null)
+            {
+                col.isTrigger = isTrigger;
+            }
         }
     }
+
 }

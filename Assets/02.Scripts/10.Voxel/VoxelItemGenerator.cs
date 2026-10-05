@@ -114,16 +114,24 @@ public class VoxelItemGenerator : MonoBehaviour
             {
                 float burialDepth = Random.Range(minArtifactHeightOffset, maxArtifactHeightOffset);
 
-                float spawnY = floorY - burialDepth;
+                float spawnY = floorY + burialDepth;
+
                 // floorY는 땅, floorY + heightOffset은 땅 표면 위에 살짝 매몰된 위치
                 Vector3 localPos = new Vector3(chamber.x, spawnY, chamber.z) - offset;
                 Vector3 worldSpawnPos = transform.TransformPoint(localPos);
 
-                // [디버그 1] 콘솔 로그로 탐색 정보 확인
-                Debug.Log($"[Artifact Debug] Chamber: {chamber} | Start Density: {startDensity} | Found FloorY: {floorY} | Spawn WorldPos: {worldSpawnPos}");
+                Debug.Log(
+                    $"[Artifact Debug] Chamber: {chamber} | " +
+                    $"FloorY: {floorY} | " +
+                    $"SpawnPos: {worldSpawnPos}"
+                );
+                Debug.DrawLine(
+                worldSpawnPos,
+                worldSpawnPos + Vector3.up * 1.5f,
+                Color.green,
+                10f
+                );
 
-                // [디버그 2] 에디터 씬 뷰에서 시각적으로 확인할 디버그 레이 선 그리기 (30초간 유지)
-                Debug.DrawLine(worldSpawnPos, worldSpawnPos + Vector3.up * 1.5f, Color.green, 10f);
 
                 validSpawnPositions.Add(worldSpawnPos);
                 debugSpawnPositions.Add(worldSpawnPos); // 디버그용 좌표 저장
