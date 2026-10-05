@@ -139,22 +139,26 @@ public class VoxelWorld : Singleton<VoxelWorld>
     // 플레이어의 DigState에서 호출되는 함수
     public async void Dig(Vector3 worldPos, float radius, float digStrength = 1.0f)
     {
+        // [Main Thread] 비동기 처리 전에 좌표를 값을 미리 캐싱함
+        Vector3 terraomPos = transform.position;
         // 메쉬를 중앙으로 옮겼으므로, 인덱스를 찾을 때는 반대로 오프셋을 더해줘야 합니다.
         Vector3 offset = new Vector3(width / 2f, height / 2f, depth / 2f);
 
         // 월드 좌표를 메쉬 내부의 로컬 배열 인덱스로 변환
-        int centerX = Mathf.RoundToInt(worldPos.x - transform.position.x + offset.x);
-        int centerY = Mathf.RoundToInt(worldPos.y - transform.position.y + offset.y);
-        int centerZ = Mathf.RoundToInt(worldPos.z - transform.position.z + offset.z);
+        int centerX = Mathf.RoundToInt(worldPos.x - terraomPos.x + offset.x);
+        int centerY = Mathf.RoundToInt(worldPos.y - terraomPos.y + offset.y);
+        int centerZ = Mathf.RoundToInt(worldPos.z - terraomPos.z + offset.z);
         int r = Mathf.CeilToInt(radius);
 
         // 최하단 암반층 높이 계산 (surfaceGen이 null이면 0으로 설정)
         int bedrockLimit = surfaceGen != null ? surfaceGen.bottomBedrockHeight : 0;
-        Bounds digZone = new Bounds(transform.position + digZoneOffset, digZoneSize);
+        // 메인 스레드에서 Bounds를 미리 생성
+        Bounds digZone = new Bounds(terraomPos + digZoneOffset, digZoneSize);
 
         // 수정이 필요한 청크 목록 (중복 방지)
         HashSet<VoxelChunk> dirtyChunks = new HashSet<VoxelChunk>();
         List<(VoxelType type, Vector3 pos)> itemsToSpawn = new List<(VoxelType, Vector3)>();
+        var dugVoxelPositions = new List<Vector3>();    // 파낸 복셀 위치를 저장할 리스트
 
         // 백그라운드 스레드로 이전하여 땅파기
         await Task.Run(() =>
@@ -173,7 +177,7 @@ public class VoxelWorld : Singleton<VoxelWorld>
                         // 배열 범위를 벗어나지 않도록 안전 검사
                         if (x >= 0 && x <= width && y >= 0 && y <= height && z >= 0 && z <= depth)
                         {
-                            Vector3 voxelWorldPos = new Vector3(x, y, z) + transform.position - offset;
+                            Vector3 voxelWorldPos = new Vector3(x, y, z) + terraomPos - offset;
                             if (useDigBounds && !digZone.Contains(voxelWorldPos)) continue;// 굴착 제한 영역 밖이면 패스
 
                             float dx = x - centerX;         // 중심점과의 거리 계산
@@ -195,10 +199,8 @@ public class VoxelWorld : Singleton<VoxelWorld>
 
                                     if (oldDensity > surfaceLevel && densities[x, y, z] <= surfaceLevel)
                                     {
-                                        lock (itemsToSpawn)     // 멀티스레드 환경에서 리스트 접근 보호
-                                        {
-                                            itemsToSpawn.Add((voxelTypes[x, y, z], voxelWorldPos));
-                                        }
+                                        dugVoxelPositions.Add(voxelWorldPos); // 파낸 복셀 위치 저장
+                                        itemsToSpawn.Add((voxelTypes[x, y, z], voxelWorldPos));
                                         voxelTypes[x, y, z] = VoxelType.Air;
                                     }
                                     // 실제로 밀도 변경이 일어났다면 플래그 설정
@@ -216,10 +218,15 @@ public class VoxelWorld : Singleton<VoxelWorld>
                 }
             }
         });
+
+        // 아이템 스폰은 유니티 메인 스레드에서 안전하게 진행
         foreach (var item in itemsToSpawn)
         {
             SpawnItemIfExist(item.type, item.pos);
         }
+        // 실제로 파괴된 복셀을 주변의 매몰 아이템에게 전달
+        NotifyBuriedItemsOfDig(dugVoxelPositions);
+
         // 변경된 1~4개 청크만 비동기 갱신
         List<Task> refreshTasks = new List<Task>();
         foreach (var chunk in dirtyChunks)
@@ -228,6 +235,39 @@ public class VoxelWorld : Singleton<VoxelWorld>
         }
 
         await Task.WhenAll(refreshTasks);
+    }
+
+    private void NotifyBuriedItemsOfDig(List<Vector3> dugVoxelPositions)
+    {
+        if (dugVoxelPositions == null ||
+       dugVoxelPositions.Count == 0)
+        {
+            return;
+        }
+
+        // 현재 씬에 존재하는 ItemObject 검색
+        ItemObject[] allItems =
+            FindObjectsByType<ItemObject>(
+                FindObjectsInactive.Exclude,
+                FindObjectsSortMode.None
+            );
+
+        if (allItems == null || allItems.Length == 0)
+            return;
+
+        foreach (Vector3 dugPosition in dugVoxelPositions)
+        {
+            foreach (ItemObject item in allItems)
+            {
+                if (item == null)
+                    continue;
+
+                if (!item.IsBuried)
+                    continue;
+
+                item.OnVoxelDug(dugPosition);
+            }
+        }
     }
 
     private void AddDirtyChunks(int x, int y, int z, HashSet<VoxelChunk> dirtyChunks)
@@ -263,16 +303,24 @@ public class VoxelWorld : Singleton<VoxelWorld>
         }
     }
 
-    private void SpawnItemIfExist(VoxelType voxelType, Vector3 spawnPosition)
+    public void SpawnItemIfExist(VoxelType type, Vector3 worldPos)
     {
-        if (voxelType == VoxelType.Dirt || voxelType == VoxelType.Air || itemGen == null) return;
+        if (itemGen == null) return;
 
-        GameObject prefab = itemGen.GetFieldPrefab(voxelType);
+        ItemDataSO itemData = itemGen.GetItemData(type);
+        if (itemData == null) return;
 
-        // 만약 해당 VoxelType에 대응하는 필드 아이템 프리팹이 존재하면, 그 위치에 스폰
-        if (prefab != null)
+        GameObject itemPrefab = itemData.GetDropPrefab();
+        if (itemPrefab == null) return;
+
+        Vector3 spawnPos = worldPos + Vector3.up * 0.2f;
+        GameObject spawnedItem = Instantiate(itemPrefab, spawnPos, Quaternion.identity);
+
+        // 드롭된 아이템 초기화 (땅을 파서 드롭된 것이므로 isBuried = false)
+        ItemObject itemObj = spawnedItem.GetComponent<ItemObject>();
+        if (itemObj != null)
         {
-            Instantiate(prefab, spawnPosition, Quaternion.identity);
+            itemObj.Initialize(itemData, false);
         }
     }
 

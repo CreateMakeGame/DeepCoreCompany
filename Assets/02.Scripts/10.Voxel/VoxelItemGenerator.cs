@@ -12,12 +12,12 @@ public class VoxelItemGenerator : MonoBehaviour
 
     [Header("Artifact Burial Depth Settings")]
     [Tooltip("땅속에 파묻히는 최소 높이 오프셋 (0.5 = 절반 매몰)")]
-    [Range(0.3f, 1.0f)]
-    [SerializeField] private float minArtifactHeightOffset = 0.5f;
+    [Range(0.2f, 1.0f)]
+    [SerializeField] private float minArtifactHeightOffset = 0.25f;
 
     [Tooltip("땅속에 파묻히는 최대 높이 오프셋 (0.8 = 살짝 매몰)")]
-    [Range(0.3f, 1.0f)]
-    [SerializeField] private float maxArtifactHeightOffset = 0.85f;
+    [Range(0.2f, 1.0f)]
+    [SerializeField] private float maxArtifactHeightOffset = 0.55f;
 
     [Header("Spawn Ratio Settings")]
     [Tooltip("할당량 대비 전체 생성 가치 비율 (1.75 = 175%)")]
@@ -28,6 +28,27 @@ public class VoxelItemGenerator : MonoBehaviour
     [SerializeField] private int generatedTotalValue = 0;
 
     private List<Vector3> debugSpawnPositions = new List<Vector3>();
+
+    /// <summary>
+    /// VoxelType에 매핑된 ItemDataSO를 안전하게 반환합니다.
+    /// </summary>
+    public ItemDataSO GetItemData(VoxelType type)
+    {
+        int index = itemSpawnList.FindIndex(s => s.voxelType == type);
+        if (index < 0) return null;
+        return itemSpawnList[index].itemData;
+    }
+
+    /// <summary>
+    /// 복셀을 파냈을 때 바닥에 드롭할 아이템 프리팹을 반환합니다.
+    /// </summary>
+    public GameObject GetFieldPrefab(VoxelType type)
+    {
+        ItemDataSO itemData = GetItemData(type);
+        if (itemData == null) return null;
+
+        return itemData.GetDropPrefab();
+    }
 
     /// <summary>
     /// 동굴 방(Chamber) 중심점들을 기반으로 동굴 바닥을 탐색하여 아이템 프리팹을 배치
@@ -91,10 +112,11 @@ public class VoxelItemGenerator : MonoBehaviour
             // 바닥을 발견했으면 해당 좌표 등록 (floorY + 1 이 height 미만인지)
             if (floorY != -1 && (floorY + 1) < height)
             {
-                float heightOffset = Random.Range(minArtifactHeightOffset, maxArtifactHeightOffset);
+                float burialDepth = Random.Range(minArtifactHeightOffset, maxArtifactHeightOffset);
 
+                float spawnY = floorY - burialDepth;
                 // floorY는 땅, floorY + heightOffset은 땅 표면 위에 살짝 매몰된 위치
-                Vector3 localPos = new Vector3(chamber.x, floorY + heightOffset, chamber.z) - offset;
+                Vector3 localPos = new Vector3(chamber.x, spawnY, chamber.z) - offset;
                 Vector3 worldSpawnPos = transform.TransformPoint(localPos);
 
                 // [디버그 1] 콘솔 로그로 탐색 정보 확인
@@ -143,13 +165,22 @@ public class VoxelItemGenerator : MonoBehaviour
             if (selectedArtifact == null) continue;
 
             // 스폰 시 사용할 프리팹 가져오기
-            GameObject prefabToSpawn = selectedArtifact.GetSpawnPrefab();
-            if (prefabToSpawn == null) continue;
-            
-            Quaternion randomRot = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-            GameObject spawnObject = Instantiate(prefabToSpawn, spawnPos, randomRot, artifactContainer);
+            GameObject spawnPrefab = selectedArtifact.GetSpawnPrefab();
+            if (spawnPrefab == null) continue;
 
-            ItemObject itemObj = spawnObject.GetComponent<ItemObject>();
+            GameObject artifactObject = Instantiate(
+                spawnPrefab,
+                spawnPos,
+                Quaternion.Euler(
+                    0f,
+                    Random.Range(0f, 360f),
+                    0f
+                ),
+                artifactContainer
+            );
+
+            ItemObject itemObj = artifactObject.GetComponent<ItemObject>();
+
             if (itemObj != null)
             {
                 itemObj.Initialize(selectedArtifact, true);
@@ -351,14 +382,6 @@ public class VoxelItemGenerator : MonoBehaviour
                 DestroyImmediate(child);
             }
         }
-    }
-
-    public GameObject GetFieldPrefab(VoxelType type)
-    {
-        int index = itemSpawnList.FindIndex(s => s.voxelType == type);
-        if (index < 0 || itemSpawnList[index].itemData == null) return null;
-
-        return itemSpawnList[index].itemData.GetDropPrefab();
     }
 
     public List<ItemSpawnData> GetSpawnList() => itemSpawnList;

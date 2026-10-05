@@ -36,6 +36,7 @@ public class ItemDataSO : ScriptableObject
         // 특수 조건 체크 시 드롭 아이템(specialFieldPrefab)을 반환
         if (isSpecialCondition && specialFieldPrefab != null)
         {
+            Debug.Log("특수 드롭 아이템 생성: " + specialFieldPrefab);
             return specialFieldPrefab;
         }
         return fieldPrefab;

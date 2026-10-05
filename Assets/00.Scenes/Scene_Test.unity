@@ -402,13 +402,12 @@ MonoBehaviour:
   caveArtifactDataList:
   - {fileID: 11400000, guid: 25a5b651e96f8a447878fa0096924a26, type: 2}
   - {fileID: 11400000, guid: 1e05a35f0a678b54ab170d627af28768, type: 2}
+  - {fileID: 11400000, guid: 4a00e8e97510e5845b4b4115b768ba97, type: 2}
   minArtifactHeightOffset: 0.5
   maxArtifactHeightOffset: 0.8
   totalQuotaMultiplier: 1.75
   caveArtifactRatio: 0.2
   generatedTotalValue: 0
-  showGizmos: 1
-  gizmoSize: 0.8
 --- !u!114 &1113873978
 MonoBehaviour:
   m_ObjectHideFlags: 0

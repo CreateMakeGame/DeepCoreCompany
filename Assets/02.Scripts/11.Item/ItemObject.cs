@@ -8,13 +8,14 @@ public class ItemObject : MonoBehaviour
 
     [Header("매몰 및 물리 설정")]
     [SerializeField] private bool isBuriedOnSpawn = true;
-    [SerializeField] private float checkInterval = 0.2f;
+    [Header("발굴 판정")]
+    [Tooltip("이 거리 안의 복셀이 파괴되면 아이템이 발굴됩니다.")]
+    [SerializeField] private float revealRadius = 1.5f;
 
     private Rigidbody rb;
     private Collider itemCollider;
 
     private bool isExposed = false;
-    private float timer = 0f;
 
     public ItemDataSO ItemData => itemData;
     public bool IsBuried => isBuriedOnSpawn && !isExposed;
@@ -31,30 +32,46 @@ public class ItemObject : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        // 땅속에 매몰된 상태일 때만 땅이 파였는지 검사
-        if (IsBuried)
-        {
-            timer += Time.deltaTime;
-            if (timer >= checkInterval)
-            {
-                timer = 0f;
-                CheckIfFullyExposed();
-            }
-        }
-    }
-
-    public void Initialize(ItemDataSO data, bool isBuried = false)
+    /// <summary>
+    /// 아이템 데이터를 초기화합니다.
+    /// buried = true  : 동굴에서 처음 생성되는 매몰 유물
+    /// buried = false : 일반 드롭 또는 발굴 완료 아이템
+    /// </summary>
+    public void Initialize(ItemDataSO data, bool buried)
     {
         itemData = data;
-        isBuriedOnSpawn = isBuried;
-        if (isBuried)
+        isBuriedOnSpawn = buried;
+        isExposed = false;
+
+        if (buried)
             ApplyBuriedState();
         else
             UnfreezePhysics();
     }
 
+    /// <summary>
+    /// VoxelWorld에서 실제로 복셀이 파괴되었을 때 호출됩니다.
+    /// </summary>
+    public void OnVoxelDug(Vector3 dugPosition)
+    {
+        if (!IsBuried)
+            return;
+
+        float sqrDistance =
+            (transform.position - dugPosition).sqrMagnitude;
+
+        float sqrRevealRadius =
+            revealRadius * revealRadius;
+
+        if (sqrDistance <= sqrRevealRadius)
+        {
+            ExposeItem();
+        }
+    }
+
+    /// <summary>
+    /// 아이템을 땅속에 묻힌 상태로 설정
+    /// </summary>
     private void ApplyBuriedState()
     {
         if (IsBuried)
@@ -67,45 +84,83 @@ public class ItemObject : MonoBehaviour
 
             if (itemCollider != null)
             {
+                // 땅속에 있는 동안 물리 충돌로 튀어나오지 않도록 Trigger
                 itemCollider.isTrigger = true;
             }
         }
     }
 
-    private void CheckIfFullyExposed()
-    {
-        if (VoxelWorld.Instance == null) return;
 
-        Vector3 worldPos = transform.position;
-        Vector3 offset = VoxelWorld.Instance.GetWorldOffset();
-
-        // 아이템의 중심 좌표를 복셀 좌표로 변환
-        int x = Mathf.FloorToInt(worldPos.x + offset.x);
-        int y = Mathf.FloorToInt(worldPos.y + offset.y);
-        int z = Mathf.FloorToInt(worldPos.z + offset.z);
-
-        float density = VoxelWorld.Instance.GetDensity(x, y, z);
-        float surfaceLevel = VoxelWorld.Instance.surfaceLevel;
-
-        if (density < surfaceLevel)
-        {
-            ExposeItem();
-        }
-    }
-
+    /// <summary>
+    /// 발굴 완료 처리
+    /// </summary>
     private void ExposeItem()
     {
+        if (isExposed)
+            return;
+
         isExposed = true;
+        isBuriedOnSpawn = false;
+
+        if (itemData != null &&
+            itemData.isSpecialCondition &&
+            itemData.specialFieldPrefab != null)
+        {
+            SpawnSpecialFieldPrefab();
+            return;
+        }
+     
         UnfreezePhysics();
 
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
     }
 
     /// <summary>
-    /// 외부(버리기, 발굴 등)에서 물리를 켤 때 호출
+    /// 현재 fieldPrefab을 specialFieldPrefab으로 교체합니다.
+    /// </summary>
+    private void SpawnSpecialFieldPrefab()
+    {
+        if (itemData == null)
+            return;
+
+        if (itemData.specialFieldPrefab == null)
+            return;
+
+        Vector3 spawnPosition = transform.position;
+        Quaternion spawnRotation = transform.rotation;
+
+        GameObject specialObject = Instantiate(
+            itemData.specialFieldPrefab,
+            spawnPosition,
+            spawnRotation,
+            transform.parent
+        );
+
+        // specialFieldPrefab에도 ItemObject가 있다면
+        // 반드시 노출 상태로 초기화
+        ItemObject specialItem =
+            specialObject.GetComponent<ItemObject>();
+
+        if (specialItem != null)
+        {
+            specialItem.Initialize(itemData, false);
+        }
+
+        Debug.Log(
+            $"[ItemObject] 유물 발굴 완료 → " +
+            $"Special Prefab 생성: {specialObject.name}"
+        );
+
+        Destroy(gameObject);
+    }
+
+
+    /// <summary>
+    /// 외부에서 물리를 활성화할 때 호출
     /// </summary>
     public void UnfreezePhysics()
     {

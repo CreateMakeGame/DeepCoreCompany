@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd3d9105d336f4a49946301a39ebb107, type: 3}
+  m_Name: Crystals_Crystals
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
+  itemID: Crystals_Crystals
+  itemName: "\uD06C\uB9AC\uC2A4\uD0C8"
+  ItemDescription: "\uD22C\uBA85\uD568\uACFC \uC601\uB871\uD55C \uBC18\uC9DD\uC784\uC744
+    \uB0B4\uB294 \uC218\uC815"
+  itemIcon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  baseValue: 30
+  fieldPrefab: {fileID: 8629535904506698411, guid: 714ff45a68c7d76499f263906d859bb2, type: 3}
+  isSpecialCondition: 0
+  specialFieldPrefab: {fileID: 8629535904506698411, guid: 714ff45a68c7d76499f263906d859bb2, type: 3}
