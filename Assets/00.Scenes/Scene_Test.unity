@@ -346,7 +346,7 @@ MonoBehaviour:
   currentAppliedSeed: 0
   baseTerrainHeight: 60
   mountainHeight: 25
-  terrainScale: 0.05
+  terrainScale: 0.016
   bottomBedrockHeight: 5
 --- !u!114 &1113873976
 MonoBehaviour:

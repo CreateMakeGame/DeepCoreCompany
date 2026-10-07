@@ -11,7 +11,7 @@ public class VoxelSurfaceGenerator : MonoBehaviour
     [Header("Surface Settings")]
     public float baseTerrainHeight = 20f;               // 기본 지면 높이
     public float mountainHeight = 30f;                  // 산/언덕의 최대 높이
-    [Range(0.005f, 0.2f)]
+    [Range(0.005f, 0.05f)]
     public float terrainScale = 0.04f;                  // 지형 굴곡 크기
 
     [Header("Bedrock Settings (최하단 암반 / 추락 방지)")]

@@ -18,7 +18,7 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
     [SerializeField] private int currentSelectedIndex = 0;
 
     [Header("Drop Settings")]
-    [SerializeField] private float forwardForce = 3f; // 앞으로 튀어나가는 힘
+    [SerializeField] private float forwardForce = 1f; // 앞으로 튀어나가는 힘
     [SerializeField] private float upwardForce = 1f; // 위로 튀어오르는 힘
 
     private ItemDataSO[] slotItems;
@@ -95,13 +95,14 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
         if (itemToDrop == null) return; // 빈 슬롯이면 무시
         
         Camera mainCamera = Camera.main;
+
         Vector3 dropDirection;
         Vector3 spawnPosition;
 
         if (mainCamera != null)
         {
             dropDirection = mainCamera.transform.forward;
-            spawnPosition = mainCamera.transform.position + dropDirection * 2f;
+            spawnPosition = mainCamera.transform.position + dropDirection;
         }
         else
         {
@@ -110,26 +111,28 @@ public class QuickSlotUI : Singleton<QuickSlotUI>
             Transform playerTrans = player != null ? player.transform : transform;
 
             dropDirection = playerTrans.forward;
-            spawnPosition = playerTrans.position + dropDirection * 0.5f + Vector3.up * 0.5f;
+            spawnPosition = playerTrans.position + dropDirection + Vector3.up;
         }
 
+        GameObject dropPrefab = itemToDrop.GetWorldDropPrefab();
+
         // 월드에 fieldPrefab 생성
-        if (itemToDrop.fieldPrefab != null)
+        if (dropPrefab != null)
         {
             // 카메라 바라보는 방향을 바라보도록 생성
-            GameObject droppedObject = Instantiate(itemToDrop.fieldPrefab, spawnPosition, Quaternion.LookRotation(dropDirection));
+            GameObject droppedObject = Instantiate(dropPrefab, spawnPosition, Quaternion.LookRotation(dropDirection));
 
-            if (droppedObject.TryGetComponent<ItemObject>(out ItemObject itemObject))
+            ItemObject itemObject = droppedObject.GetComponent<ItemObject>();
+
+            if (itemObject != null)
             {
-                // 아이템 데이터 주입
-                itemObject.Initialize(itemToDrop, false);
-
-                // 버린 아이템으로 땅속에 안 묻히게 물리 상태 켜기
-                itemObject.UnfreezePhysics();
+                itemObject.Initialize(itemToDrop, false); // 드랍 시에는 묻혀있지 않음
+                itemObject.UnfreezePhysics(); // 드랍 시에는 물리 활성화
             }
 
-            // 앞으로 던져지는 힘(Impulse) 적용
-            if (droppedObject.TryGetComponent<Rigidbody>(out Rigidbody rb))
+            Rigidbody rb = droppedObject.GetComponent<Rigidbody>();
+
+            if (rb != null)
             {
                 Vector3 dropImpulse = dropDirection * forwardForce + Vector3.up * upwardForce;
                 rb.AddForce(dropImpulse, ForceMode.Impulse);

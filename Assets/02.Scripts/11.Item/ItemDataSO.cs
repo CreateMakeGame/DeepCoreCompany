@@ -15,10 +15,12 @@ public class ItemDataSO : ScriptableObject
 
     [Header("아이템 참조")]
     public GameObject fieldPrefab;          // 기본 아이템/구조물 프리팹
+    public GameObject worldDropPrefab;        // 월드 드롭용 프리팹 (아이템 오브젝트)
 
     [Header("특수 드롭 조건")]
     public bool isSpecialCondition;         // 조건
     public GameObject specialFieldPrefab;   // 조건 충족 시 대체할 드롭 프리팹
+
 
     /// <summary>
     /// 동굴이나 맵 상에 기본 스폰할 구조물/아이템 프리팹 가져오기
@@ -40,5 +42,20 @@ public class ItemDataSO : ScriptableObject
             return specialFieldPrefab;
         }
         return fieldPrefab;
+    }
+
+    /// <summary>
+    /// 플레이어가 인벤토리에 버렸을 때
+    /// 월드에 생성할 프리팹
+    /// </summary>
+    public GameObject GetWorldDropPrefab()
+    {
+        if (worldDropPrefab != null)
+        {
+            return worldDropPrefab;
+        }
+
+        // 등록 하지 않을 경우 기존 구조 프리팹 사용
+        return GetDropPrefab();
     }
 }
