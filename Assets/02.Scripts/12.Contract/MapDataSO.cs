@@ -4,7 +4,7 @@ using UnityEngine;
 public enum MapSceneType
 {
     Scene_Company,  // 모이는 장소
-    Scene_Test,
+    Scene_Plain,    // 평원
 
 }
 

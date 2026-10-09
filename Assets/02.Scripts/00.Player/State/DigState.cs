@@ -26,27 +26,20 @@ public class DigState : IState
         if (terrain == null)
             terrain = Object.FindAnyObjectByType<VoxelWorld>();
 
-        var status = stateMachine.Status;
+        float speed = Mathf.Max(0.01f, stateMachine.Data.digSpeedMultiplier);
 
-        if (status != null)
-        {
-            if (!status.UseStamina(stateMachine.Data.digStaminaCost))
-            {
-                return;
-            }
-        }
-
+        // 속도 배율 적용
+        stateMachine.Animator.speed = speed;
         // 상체 레이어(Action Layer)의 애니메이션 재생
         stateMachine.Animator.SetTrigger(stateMachine.AnimationData.DigParameterHash);
-        // 속도 배율 적용
-        stateMachine.Animator.speed = stateMachine.Data.digSpeedMultiplier;
 
         // 실제 재생 시간 계산 (기본 시간 / 배율)
-        float currentDuration = stateMachine.Data.baseDigDuration / stateMachine.Data.digSpeedMultiplier;
+        float currentDuration = stateMachine.Data.baseDigDuration / speed;
+
         animationEndTime = Time.time + currentDuration;
+        digTime = Time.time + (currentDuration * 0.5f); // 애니메이션 절반쯤에서 땅이 파이도록 설정
 
         hasDug = false;
-        digTime = Time.time + (currentDuration * 0.5f); // 애니메이션 절반쯤에서 땅이 파이도록 설정
     }
 
     public void Update()

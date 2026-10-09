@@ -45,11 +45,12 @@ public class PlayerStateMachine : MonoBehaviour
     {
         currentState?.Update();
 
-        if (CanDig())
-        {
-            lastDigTime = Time.time; // 굴착 시작 시점 기록
-            ChangeState(Dig);
-        }
+        if (!CanDig()) return; // 굴착 조건이 충족되지 않으면 아래 로직 실행하지 않음
+
+        if (Status != null && !Status.UseStamina(data.digStaminaCost)) return; // 스태미나 부족 시 굴착 불가
+
+        lastDigTime = Time.time; // 마지막 굴착 시점 기록
+        ChangeState(Dig);
     }
     public void ChangeState(IState newState)
     {
@@ -76,16 +77,14 @@ public class PlayerStateMachine : MonoBehaviour
         if (!playerController.IsDigPressed) return false;
         if (currentState == Dig) return false;
         if (Time.time < lastDigTime + data.digCooldown) return false;
-        if (Status != null && !Status.HasStamina(data.digStaminaCost)) return false;
+        if (playerController.CameraTransform == null) return false;
 
-        if (playerController.CameraTransform != null)
+        Ray ray = new Ray(playerController.CameraTransform.position, playerController.CameraTransform.forward);
+        
+        if (Physics.Raycast(ray, out RaycastHit hit, data.digRange, data.groundLayer))
         {
-            Ray ray = new Ray(playerController.CameraTransform.position, playerController.CameraTransform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, data.digRange, data.groundLayer))
-            {
-                CurrerntDigTarget = hit.point;
-                return true;
-            }
+            CurrerntDigTarget = hit.point;
+            return true;
         }
         return false;
     }
