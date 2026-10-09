@@ -41,9 +41,8 @@ public class SpawnObject : MonoBehaviour
     //[SerializeField] private LayerMask terrainLayer;        // 지형(Voxel) 레이어
 
     private Transform spawnRootContainer;
+    public Transform MidObjectTransform { get; private set; }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    
 
     public void StartSpawning()
     {
@@ -53,9 +52,26 @@ public class SpawnObject : MonoBehaviour
         SpawnAllItems();
     }
 
+    public bool TryGetTerrainPositionAt(float worldX, float worldZ, out Vector3 position)
+    {
+        Vector3? result = GetTerrainPositionAt(worldX, worldZ);
+
+        if (result.HasValue)
+        {
+            position = result.Value;
+            return true;
+        }
+
+        position = Vector3.zero;
+        return false;
+    }
+
     // 맵 중앙(VoxelWorld의 월드 중앙)에 1개 배치
     private void SpawnMidObject()
     {
+        MidObjectTransform = null;
+
+        
         if (midSpawnObject == null) return;
 
         Vector3 worldCenter = voxelWorld.transform.position;
@@ -64,7 +80,10 @@ public class SpawnObject : MonoBehaviour
         if (spawnPos.HasValue)
         {
             Transform midContainer = GetOrCreateContainer("[Group] MidObject", spawnRootContainer);
-            Instantiate(midSpawnObject, spawnPos.Value, Quaternion.identity, midContainer);
+
+            GameObject spawnObject = Instantiate(midSpawnObject, spawnPos.Value, Quaternion.identity, midContainer);
+
+            MidObjectTransform = spawnObject.transform;
         }
     }
 
